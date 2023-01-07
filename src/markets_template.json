@@ -1,0 +1,12 @@
+[
+    {
+        "name": "Name of NFT",
+        "currency": "USDC or ATLAS",
+        "buyOrderQty": "Quantity to buy",
+        "sellOrderQty": "Quantity to sell",
+        "maximumBuyPrice": "Max buy price",
+        "minimumSellPrice": "Min sell price",
+        "stepRaise": "Percentage raise 2% = 0.02",
+        "keepFirstPositionForMinute": "When you have obtained the first position hold it for at least xx minutes"
+    }
+]
