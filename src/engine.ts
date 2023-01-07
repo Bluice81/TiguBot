@@ -407,11 +407,12 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
         if (order.owner == wallet.publicKey.toString() && el.itemMint == order.orderMint && el.currency == order.currencyMint) {
           if (eventType == GmEventType.orderModified && order.orderQtyRemaining == 0) {
             if (order.orderType == "sell") {
-              orderJsonActive[x].sellOrderQty = order.orderQtyRemaining;
+              orderJsonActive[x].sellQty = order.orderOriginationQty - order.orderQtyRemaining;
+              orderJsonActive[x].sellOrderQty = orderJsonActive[x].sellQty == 0 ? 0 : orderJsonActive[x].sellOrderQty;
             } else {
-              orderJsonActive[x].buyOrderQty = order.orderQtyRemaining;
+              orderJsonActive[x].buyQty = order.orderOriginationQty - order.orderQtyRemaining;
+              orderJsonActive[x].buyOrderQty = orderJsonActive[x].buyQty == 0 ? 0 : orderJsonActive[x].buyOrderQty;
             }
-
             updateOrderTx(orderJsonActive[x], order.orderType, "remove", "I remove my order for fill", order.id);
           }
 
