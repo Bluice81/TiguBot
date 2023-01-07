@@ -26,6 +26,8 @@ let intArr: (string | number | NodeJS.Timeout | undefined)[] = [];
 
 let orderJsonActive: any[];
 
+let counter = 0;
+
 function myLog(
   data: String,
   important: boolean = false
@@ -68,7 +70,9 @@ const init = async () => {
       return el.name.toLowerCase() == orderJsonActive[x].name.toLowerCase();
     });
 
-    if (nft.length !== 1) {
+    if (nft.length == 1) {
+      orderJsonActive[x].itemMint = nft[0].mint;
+    } else {
       orderJsonActive[x].sellOrderQty = 0;
       orderJsonActive[x].buyOrderQty = 0;
 
@@ -86,6 +90,8 @@ const init = async () => {
     }
 
     orderJsonActive[x].index = index;
+    orderJsonActive[x].counter = 0;
+    orderJsonActive[x].counterLocal = 0;
     orderJsonActive[x].tmpNewPriceSell = 0;
     orderJsonActive[x].tmpNewPriceBuy = 0;
 
@@ -113,11 +119,11 @@ const init = async () => {
     }
 
     if (orderJsonActive[x].currency == "ATLAS") {
-      orderJsonActive[x].currencyMint = ATLAS;
+      orderJsonActive[x].currency = ATLAS;
     }
 
     if (orderJsonActive[x].currency == "USDC") {
-      orderJsonActive[x].currencyMint = USDC;
+      orderJsonActive[x].currency = USDC;
     }
 
     activeOrders += orderJsonActive[x].sellOrderQty > 0 ? 1 : 0;
@@ -126,6 +132,9 @@ const init = async () => {
     index++;
   }
 
+  if (errorDescription !== '') {
+    myLog(errorDescription);
+  }
 
   orderJsonActive = ordersJson.filter(function (el) {
     return el.sellOrderQty > 0 || el.buyOrderQty > 0;
@@ -209,77 +218,146 @@ async function processOrder(order: any, orderType: string) {
       order.stateBuy = 1; //running
     }
 
-    myLog(`[${order.index}] - ${orderType} Checking order ${order.name}`);
+    order.counterLocal = counter;
+    counter++;
+
+    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Checking order ${order.name}`);
 
     //Call api web services
+    order.orderType = orderType;
     var result = await callBackendApi({ method: "getActions", wallet: wallet.publicKey.toString(), apiKey: config.apiKey, order: order });
 
     switch (result.code) {
       case 200:
-        await processActionsResult(JSON.parse(result.data));
+        var orderNew = await processActionsResult(JSON.parse(result.data));
 
         if (orderType == "sell") {
+          order.pendingNewOrderCounterSell = orderNew.pendingNewOrderCounterSell;
+          order.tmpNewPriceSell = orderNew.tmpNewPriceSell;
+
+          if (!order.openOrdersSyncSell) {
+            for (var j = 0; j < orderNew.openOrdersSell.length; j++) {
+              updateOrderTx(order, "sell", "add", "sync", orderNew.openOrdersSell[j]);
+            }
+          }
+
+          order.openOrdersSyncSell = orderNew.openOrdersSyncSell;
           order.stateSell = 0; //idle
         } else {
+          order.pendingNewOrderCounterBuy = orderNew.pendingNewOrderCounterBuy;
+          order.tmpNewPriceBuy = orderNew.tmpNewPriceBuy;
+
+          if (!order.openOrdersSyncBuy) {
+            for (var j = 0; j < orderNew.openOrdersBuy.length; j++) {
+              updateOrderTx(order, "buy", "add", "sync", orderNew.openOrdersBuy[j]);
+            }
+          }
+
+          order.openOrdersSyncBuy = orderNew.openOrdersSyncBuy;
           order.stateBuy = 0; //idle
         }
         break;
       default:
-        myLog(`[${order.index}] - ${orderType} Service Error: ${result.code} ${result.data} `);
+        myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Service Error: ${result.code} ${result.data} `);
         break;
     }
   } catch (e) {
-    myLog(`[${order.index}] - ${orderType} ${e}`);
+    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} ${e}`);
   }
 }
 
 async function processActionsResult(order: any) {
-  for (var x = 0; x < order.actions.length; x++) {
-    myLog(`[${order.index}] Checking ${order.actions[x].orderType} orders for: ${order.name}`);
+  try {
+    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.orderType} Checking result orders for: ${order.name}`);
 
-    switch (order.actions[x].action) {
-      case "placeOrder":
-        order.lastActivity = new Date().getTime();
-
-        var newOrderTx: string = "";
-
-        if (!isTest) {
-          myLog(`[${x}] tmp: ${order.tmpNewPrice} - newPrice ${order.actions[x].newPrice}`);
-
-          try {
-            order.tmpNewPrice = 0;
-            newOrderTx = await placeOrder(order.itemMint, new PublicKey(order.currency), order.actions[x].qty, order.actions[x].newPrice, order.actions[x].orderType);
-
-            order.pendingNewOrderCounter++;
+    for (var z = 0; z < order.actions.length; z++) {
+      switch (order.actions[z].method) {
+        case "placeOrder":
+          if (order.actions[z].orderType == "sell") {
+            order.lastActivitySell = new Date().getTime();
+          } else {
+            order.lastActivityBuy = new Date().getTime();
           }
-          catch (e) {
-            order.tmpNewPrice = order.actions[x].newPrice;
-          }
-        }
 
-        myLog(`[${x}] Place ${order.actions[x].newPrice} ${order.actions[x].orderType} order ${newOrderTx} for ${order.actions[x].reason}`);
-
-        break;
-      case "cancelOrder":
-        order.lastActivity = new Date().getTime();
-
-        for (var y = 0; y < order.openOrders.length; y++) {
-          var cancelTx: string = "";
+          var newOrderTx: string = "";
 
           if (!isTest) {
-            order.tmpNewPrice = order.actions[x].newPrice;
-            cancelTx = await cancelOrder(new PublicKey(order.openOrders[y]));
+            var tmpNewPriceContainer = order.actions[z].orderType == "sell" ? order.tmpNewPriceSell : order.tmpNewPriceBuy;
+
+            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] tmp: ${tmpNewPriceContainer} - newPrice ${order.actions[z].newPrice}`);
+
+            try {
+              if (order.actions[z].orderType == "sell") {
+                order.tmpNewPriceSell = 0;
+              } else {
+                order.tmpNewPriceBuy = 0;
+              }
+
+              var qty = order.actions[z].orderType == "sell" ? order.sellOrderQty : order.buyOrderQty;
+
+              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(order.currency), qty, order.actions[z].newPrice, order.actions[z].orderType);
+
+              if (order.actions[z].orderType == "sell") {
+                order.pendingNewOrderCounterSell++;
+              } else {
+                order.pendingNewOrderCounterBuy++;
+              }
+            }
+            catch (e) {
+              myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.actions[z].orderType} Error placing order ${e}`);
+
+              if (order.actions[z].orderType == "sell") {
+                order.tmpNewPriceSell = order.actions[z].newPrice;
+              } else {
+                order.tmpNewPriceBuy = order.actions[z].newPrice;
+              }
+            }
           }
 
-          myLog(`[${x}] Cancel order id ${order.openOrders[y]} for ${order.actions[x].reason} txID: ${cancelTx}`);
-        }
+          var containerPending = order.actions[z].orderType == "sell" ? order.pendingNewOrderCounterSell : order.pendingNewOrderCounterBuy;
 
-        break;
-      default:
-        myLog(`[${x}] No action needed`);
-        break;
+          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Place ${order.actions[z].newPrice} ${order.actions[z].orderType} order ${newOrderTx} for ${order.actions[z].reason} pendingNewOrders: ${containerPending}`);
+
+          break;
+        case "cancelOrder":
+          var openOrdersContainer = order.actions[z].orderType == "sell" ? order.openOrdersSell : order.openOrdersBuy;
+
+          if (order.actions[z].orderType == "sell") {
+            order.lastActivitySell = new Date().getTime();
+          } else {
+            order.lastActivityBuy = new Date().getTime();
+          }
+
+          for (var y = 0; y < openOrdersContainer.length; y++) {
+            var cancelTx: string = "";
+            var orderId = openOrdersContainer[y];
+
+            if (!isTest) {
+              if (order.actions[z].orderType == "sell") {
+                order.tmpNewPriceSell = order.actions[z].newPrice;
+              } else {
+                order.tmpNewPriceBuy = order.actions[z].newPrice;
+              }
+
+              cancelTx = await cancelOrder(new PublicKey(orderId));
+              updateOrderTx(order, order.actions[z].orderType, "remove", "Cancel order", openOrdersContainer[y]);
+            }
+
+            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Cancel order id ${orderId} for ${order.actions[z].reason} txID: ${cancelTx}`);
+          }
+
+          break;
+        default:
+          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] ${order.actions[z].reason}`);
+          break;
+      }
     }
+  } catch (e) {
+    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.orderType} ${e}`);
   }
+
+
+  return order;
 }
 
 async function callBackendApi(data = {}) {
@@ -292,18 +370,6 @@ async function callBackendApi(data = {}) {
   });
 
   return response.json();
-}
-
-async function callBackendApi2(data = {}) {
-  const response = await fetch(config.apiServerAddress, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  });
-
-  return response.text();
 }
 
 async function botEvent() {
@@ -360,7 +426,7 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
           });
 
           if (nftName.length == 1) {
-            myLog(`--------Check market [${x}] for ${order.orderType} order modified/removed ${nftName[0].name} qty: ${order.orderQtyRemaining} * ${order.uiPrice} USDC`);
+            myLog(`--------Check market [${el.index}][${el.counterLocal} - ${el.counter}] for ${order.orderType} order modified/removed ${nftName[0].name} qty: ${order.orderQtyRemaining} * ${order.uiPrice} USDC`);
             processOrder(orderJsonActive[x], order.orderType);
           }
 
@@ -376,6 +442,7 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
 
 function updateOrderTx(order: any, orderType: string, action: string, source: string, orderId: string) {
   var container = orderType == "sell" ? order.openOrdersSell : order.openOrdersBuy;
+  var containerPending = orderType == "sell" ? order.pendingNewOrderCounterSell : order.pendingNewOrderCounterBuy;
 
   if (action == "remove") {
     var index = container.indexOf(orderId);
@@ -399,7 +466,7 @@ function updateOrderTx(order: any, orderType: string, action: string, source: st
     }
   }
 
-  myLog(`[${order.index}] - ${orderType} ${source} ${orderId} openOrders: ${container.length};`);
+  myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} ${source} ${orderId} openOrders: ${container.length}; pendingNewOrders: ${containerPending}`);
 }
 
 async function placeOrder(itemMint: PublicKey, quoteMint: PublicKey, quantity: number, uiPrice: number, orderSide: any) {
