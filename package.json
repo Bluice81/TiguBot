@@ -1,0 +1,25 @@
+{
+    "name": "bot2023",
+    "version": "1.0.0",
+    "description": "",
+    "source": "src/engine.ts",
+    "scripts": {
+        "start": "ts-node ./src/engine.ts"
+    },
+    "keywords": [],
+    "author": "BluIce81",
+    "license": "ISC",
+    "dependencies": {
+        "@solana/web3.js": "^1.69",
+        "@staratlas/factory": "^0.4.4",
+        "@types/bs58": "^4.0.1",
+        "@types/isomorphic-fetch": "^0.0.35",
+        "bs58": "^4.0.1",
+        "isomorphic-fetch": "^3.0.0",
+        "node-fetch": "^3.1.0",
+        "ts-node": "^10.4.0"
+    },
+    "devDependencies": {
+        "typescript": "^4.5.3"
+    }
+}
