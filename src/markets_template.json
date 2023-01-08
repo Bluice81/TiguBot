@@ -4,9 +4,9 @@
         "currency": "USDC or ATLAS",
         "sellOrderQty": "Quantity to sell",
         "sellQty": "Maximum qty to sell",
+        "minimumSellPrice": "Min sell price",
         "buyOrderQty": "Quantity to buy",
         "buyQty": "Maximum qty to buy",
-        "minimumSellPrice": "Min sell price",
         "maximumBuyPrice": "Max buy price",
         "stepRaise": "Percentage raise 2% = 0.02",
         "keepFirstPositionForMinute": "When you have obtained the first position hold it for at least xx minutes"
