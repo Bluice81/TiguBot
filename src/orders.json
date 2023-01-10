@@ -1,0 +1,20 @@
+[
+    {
+        "name": "Core - Episode 1 (Star Atlas)",
+        "currency": "USDC",
+        "sellOrderQty": 1,
+        "minimumInventory": 0,
+        "minimumSellPrice": 32,
+        "buyOrderQty": 1,
+        "maximumInventory": 3,
+        "maximumBuyPrice": 25,
+        "stepRaiseSell": 0.02,
+        "stepRaiseBuy": 0.02,
+        "keepFirstPositionForMinuteSell": 5,
+        "keepFirstPositionForMinuteBuy": 5,
+        "priceWallSell": 0,
+        "priceWallBuy": 24,
+        "entryPriceSell": 0,
+        "entryPriceBuy": 0
+    }       
+]

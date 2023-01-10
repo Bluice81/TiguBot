@@ -2,10 +2,10 @@ import { Connection, PublicKey, VersionedTransaction, TransactionMessage, Keypai
 import { GmEventService, GmClientService, GmEventType, Order } from '@staratlas/factory';
 import fetch from "isomorphic-fetch";
 import base58 = require('bs58');
-import ordersJson from "./markets.json";
+import ordersJson from "./orders.json";
 import config from "./config.json";
 
-let version = '1.54 05/01/2023';
+let version = '1.6 10/01/2023';
 
 let wallet: Keypair;
 
@@ -57,7 +57,7 @@ const init = async () => {
 
   nfts = await getNfts();
 
-  orderJsonActive = ordersJson.filter(function (el) {
+  orderJsonActive = ordersJson.filter(function (el: any) {
     return el.buyOrderQty > 0 || el.sellOrderQty > 0;
   });
 
@@ -108,6 +108,14 @@ const init = async () => {
     orderJsonActive[x].openOrdersSyncSell = false;
     orderJsonActive[x].openOrdersSyncBuy = false;
 
+    if (!orderJsonActive[x].disableSafetyChecksSell) {
+      orderJsonActive[x].disableSafetyChecksSell = false;
+    }
+    if (!orderJsonActive[x].disableSafetyChecksSell) {
+      orderJsonActive[x].disableSafetyChecksBuy = false;
+    }
+
+    //get token account of NFT
     try {
       var ris = await connection.getTokenAccountsByOwner(wallet.publicKey, {
         mint: new PublicKey(orderJsonActive[x].itemMint),
@@ -136,7 +144,8 @@ const init = async () => {
     myLog(errorDescription);
   }
 
-  orderJsonActive = ordersJson.filter(function (el) {
+  //get valid orders
+  orderJsonActive = ordersJson.filter(function (el: any) {
     return el.sellOrderQty > 0 || el.buyOrderQty > 0;
   });
 
@@ -225,11 +234,63 @@ async function processOrder(order: any, orderType: string) {
 
     //Call api web services
     order.orderType = orderType;
-    var result = await callBackendApi({ method: "getActions", wallet: wallet.publicKey.toString(), apiKey: config.apiKey, order: order });
+
+    var result: any;
+    try {
+      result = await callBackendApi({ method: "getActions", wallet: wallet.publicKey.toString(), apiKey: config.apiKey, order: order });
+      order.lastError = undefined;
+    } catch {
+      if (!order.lastError) {
+        order.lastError = new Date().getTime();
+      }
+
+      var lastErrorServerContact = Math.round((new Date().getTime() - order.lastError) / 60000);
+      myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType}: last error server contact: ${lastErrorServerContact} minutes ago`);
+
+      if (lastErrorServerContact < 1) {
+        if (orderType == "sell") {
+          order.stateSell = 0; //idle
+        } else {
+          order.stateBuy = 0; //idle
+        }
+
+        return;
+      } else {
+        myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType}: contact with server lost, remove all open orders`);
+
+        order.actions = [];
+        order.actions.push({
+          orderType: order.orderType,
+          method: "cancelOrder",
+          newPrice: 0,
+          reason: "server lost"
+        });
+
+        var orderNew = await processActionsResult(order);
+
+        if (orderType == "sell") {
+          order.stateSell = 0; //idle
+        } else {
+          order.stateBuy = 0; //idle
+        }
+
+        return;
+      }
+    }
 
     switch (result.code) {
       case 200:
-        var orderNew = await processActionsResult(JSON.parse(result.data));
+        var serverOrder = JSON.parse(result.data);
+
+        //server response security checks
+        if (serverOrder.orderType !== order.orderType || serverOrder.itemMint !== order.itemMint || serverOrder.currency !== order.currency ||
+          (order.orderType == "sell" && serverOrder.newPrice < order.maximumBuyPrice) ||
+          (order.orderType == "buy" && serverOrder.newPrice > order.maximumBuyPrice)) {
+          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Service Error: wrong data`);
+          break;
+        }
+
+        var orderNew = await processActionsResult(serverOrder);
 
         if (orderType == "sell") {
           order.pendingNewOrderCounterSell = orderNew.pendingNewOrderCounterSell;
@@ -356,7 +417,6 @@ async function processActionsResult(order: any) {
     myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.orderType} ${e}`);
   }
 
-
   return order;
 }
 
@@ -392,7 +452,7 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
           var el = orderJsonActive[x];
 
           if (el.itemMint == order.orderMint && el.currency == order.currencyMint) {
-            updateOrderTx(orderJsonActive[x], order.orderType, "add", "I add my new order", order.id);
+            updateOrderTx(orderJsonActive[x], order.orderType, "add", "EVT_ I add my new order", order.id);
             break;
           }
         }
@@ -406,28 +466,21 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
 
         if (order.owner == wallet.publicKey.toString() && el.itemMint == order.orderMint && el.currency == order.currencyMint) {
           if (eventType == GmEventType.orderModified && order.orderQtyRemaining == 0) {
-            if (order.orderType == "sell") {
-              orderJsonActive[x].sellQty = order.orderOriginationQty - order.orderQtyRemaining;
-              orderJsonActive[x].sellOrderQty = orderJsonActive[x].sellQty == 0 ? 0 : orderJsonActive[x].sellOrderQty;
-            } else {
-              orderJsonActive[x].buyQty = order.orderOriginationQty - order.orderQtyRemaining;
-              orderJsonActive[x].buyOrderQty = orderJsonActive[x].buyQty == 0 ? 0 : orderJsonActive[x].buyOrderQty;
-            }
-            updateOrderTx(orderJsonActive[x], order.orderType, "remove", "I remove my order for fill", order.id);
+            updateOrderTx(orderJsonActive[x], order.orderType, "remove", "EVT_ Remove my order for fill", order.id);
           }
 
           if (eventType == GmEventType.orderRemoved) {
-            updateOrderTx(orderJsonActive[x], order.orderType, "remove", "I remove my order due to cancellation", order.id);
+            updateOrderTx(orderJsonActive[x], order.orderType, "remove", "EVT_ Remove my order due to cancellation", order.id);
           }
         }
 
-        if (order.owner !== wallet.publicKey.toString() && el.itemMint == order.orderMint && el.active && ((el.sellOrderQty > 0 && order.orderType == "sell") || (el.buyOrderQty > 0 && order.orderType == "buy")) && el.currency == order.currencyMint && el.priceWall > 0) {
+        if (order.owner !== wallet.publicKey.toString() && el.itemMint == order.orderMint && ((el.sellOrderQty > 0 && order.orderType == "sell" && el.priceWallSell > 0) || (el.buyOrderQty > 0 && order.orderType == "buy" && el.priceWallBuy > 0)) && el.currency == order.currencyMint) {
           var nftName = nfts.filter(function (el) {
             return el.mint == order.orderMint;
           });
 
           if (nftName.length == 1) {
-            myLog(`--------Check market [${el.index}][${el.counterLocal} - ${el.counter}] for ${order.orderType} order modified/removed ${nftName[0].name} qty: ${order.orderQtyRemaining} * ${order.uiPrice} USDC`);
+            myLog(`EVT_ check market [${el.index}][${el.counterLocal} - ${el.counter}] for ${order.orderType} order modified/removed ${nftName[0].name} qty: ${order.orderQtyRemaining} * ${order.uiPrice} USDC`);
             processOrder(orderJsonActive[x], order.orderType);
           }
 
@@ -467,8 +520,9 @@ function updateOrderTx(order: any, orderType: string, action: string, source: st
     }
   }
 
-  myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} ${source} ${orderId} openOrders: ${container.length}; pendingNewOrders: ${containerPending}`);
+  myLog(`[${order.index}] - ${orderType} ${source} ${orderId} openOrders: ${container.length}; pendingNewOrders: ${containerPending}`);
 }
+
 
 async function placeOrder(itemMint: PublicKey, quoteMint: PublicKey, quantity: number, uiPrice: number, orderSide: any) {
   const priceBN = await gmClientService.getBnPriceForCurrency(
