@@ -24,7 +24,7 @@ for the next launches
 5. from the prompt, run the command npm start
 6. when prompted, enter your secret key.
 
-optional parameters\n
+optional parameters<br />
 npm start {testMode = 0 or 1} {writeLogFile = 0 or 1}
 Example:
 npm start ---> operating mode (orders will be placed)
