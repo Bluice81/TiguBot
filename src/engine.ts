@@ -19,7 +19,7 @@ let numConsoleMessage = 0;
 
 let isTest = true;
 let writeLogFile = false;
-let logPath = `${__dirname}\\${new Date().toISOString().replaceAll(":","_")}.log`;
+let logPath = `${__dirname}\\log\\${new Date().toISOString().replaceAll(":", "_")}.log`;
 
 let nfts: any[] = [];
 
@@ -48,7 +48,7 @@ function myLog(
   if (writeLogFile) {
     try {
       var fs = require('fs');
-      fs.writeFile(logPath, message +"\n", { flag: 'a+' }, function (err: any) {
+      fs.writeFile(logPath, message + "\n", function (err: any) {
       });
     } catch (e) {
     }
