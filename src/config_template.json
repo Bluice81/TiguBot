@@ -1,4 +1,8 @@
 {
     "rpc" : "your rpc connection",
-    "apiKey": "your api key"
+    "apiKey": "your api key",
+    "privateKey": {
+        "iv": "leave blank, valued by the program",
+        "content": "leave blank, valued by the program"
+    },    
 }
