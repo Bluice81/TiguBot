@@ -7,7 +7,7 @@ import base58 = require('bs58');
 import ordersJson from "./orders.json";
 import config from "./config.json";
 
-let version = '1.6 10/01/2023';
+let version = '1.7 14/01/2023';
 
 let wallet: Keypair;
 
@@ -18,6 +18,7 @@ let gmClientService = new GmClientService();
 let numConsoleMessage = 0;
 
 let isTest = true;
+let writeLogFile = false;
 
 let nfts: any[] = [];
 
@@ -89,6 +90,7 @@ async function init() {
   var param = process.argv.slice(2);
 
   isTest = param.length < 1 || process.argv.slice(2)[0] == "1";
+  writeLogFile = param.length > 1 && process.argv.slice(3)[0] == "1";
 
   nfts = await getNfts();
 
@@ -193,7 +195,7 @@ async function init() {
     return el.sellOrderQty > 0 || el.buyOrderQty > 0;
   });
 
-  myLog(`System start ${version} testMode: ${config.testMode} - active markets: ${orderJsonActive.length} - active orders: ${activeOrders} `);
+  myLog(`System start ${version} testMode: ${isTest} writeLogFile: ${writeLogFile} - active markets: ${orderJsonActive.length} - active orders: ${activeOrders} `);
 
   botEvent();
 
@@ -390,18 +392,15 @@ async function processActionsResult(order: any) {
             var cancelTx: string = "";
             var orderId = openOrdersContainer[y];
 
-            if (config.testMode == "off") {
+            if (!isTest) {
               if (order.actions[z].orderType == "sell") {
                 order.tmpNewPriceSell = order.actions[z].newPrice;
               } else {
                 order.tmpNewPriceBuy = order.actions[z].newPrice;
               }
 
-              if (!isTest) {
-                cancelTx = await cancelOrder(new PublicKey(orderId));
-                updateOrderTx(order, order.actions[z].orderType, "remove", "Cancel order", openOrdersContainer[y]);
-              }
-
+              cancelTx = await cancelOrder(new PublicKey(orderId));
+              updateOrderTx(order, order.actions[z].orderType, "remove", "Cancel order", openOrdersContainer[y]);
             }
 
             myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Cancel order id ${orderId} for ${order.actions[z].reason} txID: ${cancelTx}`);
@@ -417,7 +416,7 @@ async function processActionsResult(order: any) {
 
           var newOrderTx: string = "";
 
-          if (config.testMode == "off") {
+          if (!isTest) {
             var tmpNewPriceContainer = order.actions[z].orderType == "sell" ? order.tmpNewPriceSell : order.tmpNewPriceBuy;
 
             myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] tmp: ${tmpNewPriceContainer} - newPrice ${order.actions[z].newPrice}`);
@@ -431,9 +430,7 @@ async function processActionsResult(order: any) {
 
               var qty = order.actions[z].orderType == "sell" ? order.sellOrderQty : order.buyOrderQty;
 
-              if (!isTest) {
-                newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(order.currency), qty, order.actions[z].newPrice, order.actions[z].orderType);
-              }
+              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(order.currency), qty, order.actions[z].newPrice, order.actions[z].orderType);
 
               myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.actions[z].orderType} Place ${order.actions[z].newPrice} order ${newOrderTx} for ${order.actions[z].reason}`);
 
