@@ -319,7 +319,7 @@ async function processOrder(order: any, orderType: string) {
       var lastErrorServerContact = Math.round((new Date().getTime() - order.lastError) / 60000);
       myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType}: last error server contact: ${lastErrorServerContact} minutes ago`);
 
-      if (lastErrorServerContact < 1) {
+      if (lastErrorServerContact < 5) {
         if (orderType == "sell") {
           order.stateSell = 0; //idle
         } else {
@@ -328,6 +328,8 @@ async function processOrder(order: any, orderType: string) {
 
         return;
       } else {
+        order.lastError = undefined;
+
         myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType}: contact with server lost, remove all open orders`);
 
         order.actions = [];
