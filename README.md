@@ -2,6 +2,8 @@
 
 Automated trading software for Galactic Marketplace of Star Atlas (https://play.staratlas.com/).
 
+<b>To use the software it is necessary to buy an apiKey.</b> Follow the instructions below.
+
 Only for the first launch
 
 1. Visit https://www.tigubot.com/
