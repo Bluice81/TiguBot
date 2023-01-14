@@ -1,7 +1,8 @@
 [
     {
         "name": "Name of NFT",
-        "currency": "Name of currency: USDC or ATLAS",
+        "currencySell": "Name of currency: USDC or ATLAS for sell orders",
+        "currencyBuy": "Name of currency: USDC or ATLAS for buy orders",
         "sellOrderQty": "Quantity for sell orders",
         "minimumInventory": "Minimum amount to have in the wallet",
         "minimumSellPrice": "Minimum selling price",
