@@ -397,8 +397,11 @@ async function processActionsResult(order: any) {
                 order.tmpNewPriceBuy = order.actions[z].newPrice;
               }
 
-              cancelTx = await cancelOrder(new PublicKey(orderId));
-              updateOrderTx(order, order.actions[z].orderType, "remove", "Cancel order", openOrdersContainer[y]);
+              if (!isTest) {
+                cancelTx = await cancelOrder(new PublicKey(orderId));
+                updateOrderTx(order, order.actions[z].orderType, "remove", "Cancel order", openOrdersContainer[y]);
+              }
+
             }
 
             myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Cancel order id ${orderId} for ${order.actions[z].reason} txID: ${cancelTx}`);
@@ -428,7 +431,11 @@ async function processActionsResult(order: any) {
 
               var qty = order.actions[z].orderType == "sell" ? order.sellOrderQty : order.buyOrderQty;
 
-              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(order.currency), qty, order.actions[z].newPrice, order.actions[z].orderType);
+              if (!isTest) {
+                newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(order.currency), qty, order.actions[z].newPrice, order.actions[z].orderType);
+              }
+
+              myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.actions[z].orderType} Place ${order.actions[z].newPrice} order ${newOrderTx} for ${order.actions[z].reason}`);
 
               if (order.actions[z].orderType == "sell") {
                 order.pendingNewOrderCounterSell++;
