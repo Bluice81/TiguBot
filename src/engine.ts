@@ -19,6 +19,7 @@ let numConsoleMessage = 0;
 
 let isTest = true;
 let writeLogFile = false;
+let logPath = `${__dirname}\\${new Date().toISOString().replaceAll(":","_")}.log`;
 
 let nfts: any[] = [];
 
@@ -41,7 +42,17 @@ function myLog(
     console.clear();
   }
 
-  console.log(new Date().toLocaleString(), (important ? '>>>>>>' : ''), data, (important ? '<<<<<<' : ''));
+  let message = `${new Date().toLocaleString()}, ${(important ? '>>>>>>' : '')} ${data} ${(important ? '<<<<<<' : '')}`;
+  console.log(message);
+
+  if (writeLogFile) {
+    try {
+      var fs = require('fs');
+      fs.writeFile(logPath, message +"\n", { flag: 'a+' }, function (err: any) {
+      });
+    } catch (e) {
+    }
+  }
 }
 
 const initWallet = async () => {
@@ -65,7 +76,7 @@ const initWallet = async () => {
           }
         });
 
-        console.log(`ris: ${privateKey} ${secretKey} ${hash.content}`);
+        console.log(`ris: ${privateKey} ${secretKey} ${hash.content} `);
         rl.close();
 
         wallet = Keypair.fromSecretKey(base58.decode(privateKey));
@@ -113,7 +124,7 @@ async function init() {
       orderJsonActive[x].sellOrderQty = 0;
       orderJsonActive[x].buyOrderQty = 0;
 
-      errorDescription += `Market nr. ${x} - NFT name not found!\n`;
+      errorDescription += `Market nr.${x} - NFT name not found!\n`;
 
       break;
     }
@@ -121,7 +132,7 @@ async function init() {
       orderJsonActive[x].sellOrderQty = 0;
       orderJsonActive[x].buyOrderQty = 0;
 
-      errorDescription += `Market nr. ${x} - Wrong currency, possible values: ATLAS or USDC\n`;
+      errorDescription += `Market nr.${x} - Wrong currency, possible values: ATLAS or USDC\n`;
 
       break;
     }
@@ -130,7 +141,7 @@ async function init() {
       orderJsonActive[x].sellOrderQty = 0;
       orderJsonActive[x].buyOrderQty = 0;
 
-      errorDescription += `Market nr. ${x} - Wrong minimumSellPrice, value must be greater than zero\n`;
+      errorDescription += `Market nr.${x} - Wrong minimumSellPrice, value must be greater than zero\n`;
 
       break;
     }
@@ -225,7 +236,7 @@ async function makeOrdersInterval() {
           delay = 10000;
         }
 
-        myLog(`[${orderJsonActive[x].index}] - sell -----> (${delay})`);
+        myLog(`[${orderJsonActive[x].index}]- sell-----> (${delay})`);
 
         processOrder(orderJsonActive[x], "sell");
         intArr.push(setInterval(function () {
@@ -241,7 +252,7 @@ async function makeOrdersInterval() {
           delay = 10000;
         }
 
-        myLog(`[${orderJsonActive[x].index}] - buy -----> (${delay})`);
+        myLog(`[${orderJsonActive[x].index}]- buy-----> (${delay})`);
 
         processOrder(orderJsonActive[x], "buy");
         intArr.push(setInterval(function () {
@@ -276,7 +287,7 @@ async function processOrder(order: any, orderType: string) {
     order.counterLocal = counter;
     counter++;
 
-    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Checking order ${order.name}`);
+    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Checking order ${order.name} `);
 
     //Call api web services
     order.orderType = orderType;
@@ -369,13 +380,13 @@ async function processOrder(order: any, orderType: string) {
         break;
     }
   } catch (e) {
-    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} ${e}`);
+    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} ${e} `);
   }
 }
 
 async function processActionsResult(order: any) {
   try {
-    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.orderType} Checking result orders for: ${order.name}`);
+    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.orderType} Checking result orders for: ${order.name} `);
 
     for (var z = 0; z < order.actions.length; z++) {
       switch (order.actions[z].method) {
@@ -403,7 +414,7 @@ async function processActionsResult(order: any) {
               updateOrderTx(order, order.actions[z].orderType, "remove", "Cancel order", openOrdersContainer[y]);
             }
 
-            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Cancel order id ${orderId} for ${order.actions[z].reason} txID: ${cancelTx}`);
+            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Cancel order id ${orderId} for ${order.actions[z].reason} txID: ${cancelTx} `);
           }
 
           break;
@@ -419,7 +430,7 @@ async function processActionsResult(order: any) {
           if (!isTest) {
             var tmpNewPriceContainer = order.actions[z].orderType == "sell" ? order.tmpNewPriceSell : order.tmpNewPriceBuy;
 
-            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] tmp: ${tmpNewPriceContainer} - newPrice ${order.actions[z].newPrice}`);
+            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] tmp: ${tmpNewPriceContainer} - newPrice ${order.actions[z].newPrice} `);
 
             try {
               if (order.actions[z].orderType == "sell") {
@@ -441,7 +452,7 @@ async function processActionsResult(order: any) {
               }
             }
             catch (e) {
-              myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.actions[z].orderType} Error placing order ${e}`);
+              myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.actions[z].orderType} Error placing order ${e} `);
 
               if (order.actions[z].orderType == "sell") {
                 order.tmpNewPriceSell = order.actions[z].newPrice;
@@ -453,16 +464,16 @@ async function processActionsResult(order: any) {
 
           var containerPending = order.actions[z].orderType == "sell" ? order.pendingNewOrderCounterSell : order.pendingNewOrderCounterBuy;
 
-          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Place ${order.actions[z].newPrice} ${order.actions[z].orderType} order ${newOrderTx} for ${order.actions[z].reason} pendingNewOrders: ${containerPending}`);
+          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Place ${order.actions[z].newPrice} ${order.actions[z].orderType} order ${newOrderTx} for ${order.actions[z].reason} pendingNewOrders: ${containerPending} `);
 
           break;
         default:
-          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] ${order.actions[z].reason}`);
+          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] ${order.actions[z].reason} `);
           break;
       }
     }
   } catch (e) {
-    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.orderType} ${e}`);
+    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.orderType} ${e} `);
   }
 
   return order;
@@ -528,7 +539,7 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
           });
 
           if (nftName.length == 1) {
-            myLog(`EVT_ check market [${el.index}][${el.counterLocal} - ${el.counter}] for ${order.orderType} order modified/removed ${nftName[0].name} qty: ${order.orderQtyRemaining} * ${order.uiPrice} USDC`);
+            myLog(`EVT_ check market[${el.index}][${el.counterLocal} - ${el.counter}] for ${order.orderType} order modified / removed ${nftName[0].name} qty: ${order.orderQtyRemaining} * ${order.uiPrice} USDC`);
             processOrder(orderJsonActive[x], order.orderType);
           }
 
@@ -568,7 +579,7 @@ function updateOrderTx(order: any, orderType: string, action: string, source: st
     }
   }
 
-  myLog(`[${order.index}] - ${orderType} ${source} ${orderId} openOrders: ${container.length}; pendingNewOrders: ${containerPending}`);
+  myLog(`[${order.index}]- ${orderType} ${source} ${orderId} openOrders: ${container.length}; pendingNewOrders: ${containerPending} `);
 }
 
 async function placeOrder(itemMint: PublicKey, quoteMint: PublicKey, quantity: number, uiPrice: number, orderSide: any) {
