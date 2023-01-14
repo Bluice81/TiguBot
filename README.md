@@ -4,7 +4,7 @@ Automated trading software for Galactic Marketplace of Star Atlas (https://play.
 
 <b>To use the software it is necessary to buy an apiKey.</b> Follow the instructions below.
 
----DISCLAIMER---
+---DISCLAIMER---<br />
 I am aware that the configuration, if valued incorrectly, can cause losses. Check carefully that you have set the values correctly, especially bid and ask prices. TiguBot is not responsible for any losses due to incorrect configurations. You understand that trading carries a high level of risk. The use of a bot system can generate losses if your pc loses the internet connection or if the connection with our server is lost. It is your responsibility to periodically check the results of the bot's actions.
 
 The information provided on this website (https://www.tigubot.com/) does not constitute investment advice, financial advice, trading advice, or any other sort of advice and you should not treat any of the website's content as such. TiguBot does not recommend that any cryptocurrency should be bought, sold, or held by you. Do conduct your own due diligence and consult your financial advisor before making any investment decisions.  
