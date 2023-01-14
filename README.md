@@ -24,10 +24,10 @@ for the next launches
 5. from the prompt, run the command npm start
 6. when prompted, enter your secret key.
 
-optional parameters<br />
-npm start {testMode = 0 or 1} {writeLogFile = 0 or 1}
-Example:
-npm start ---> operating mode (orders will be placed)
-npm start 1 ---> for test mode, no orders will be placed. Useful to see the actions the bot will do without executing them.
-npm start 1 1 ---> for test mode and save log file
-npm start 0 1 ---> operating mode (orders will be placed) and save log file
+Command syntax<br />
+npm start {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
+Example:<br />
+npm start ---> operating mode (orders will be placed)<br />
+npm start 1 ---> for test mode, no orders will be placed. Useful to see the actions the bot will do without executing them.<br />
+npm start 1 1 ---> for test mode and save log file<br />
+npm start 0 1 ---> operating mode (orders will be placed) and save log file<br />
