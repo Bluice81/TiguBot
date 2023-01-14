@@ -4,5 +4,5 @@
     "privateKey": {
         "iv": "leave blank, valued by the program",
         "content": "leave blank, valued by the program"
-    },    
+    }
 }
