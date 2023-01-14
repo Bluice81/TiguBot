@@ -12,8 +12,6 @@
         "stepRaiseBuy": "Percentage raise 2% = 0.02 for buy orders",
         "keepFirstPositionForMinuteSell": "When you have obtained the first position, for sell orders, hold it for at least xx minutes",
         "keepFirstPositionForMinuteBuy": "When you have obtained the first position, for buy orders, hold it for at least xx minutes",
-        "priceWallSell": "Only when for sell orders, with the indicated value, the second position can be obtained will the system use this field.",
-        "priceWallBuy": "Only when for buy orders, with the indicated value, the second position can be obtained will the system use this field.",
         "entryPriceSell": "This price, if greater than zero, will be used when getting the top position for sell orders",
         "entryPriceBuy": "This price, if greater than zero, will be used when getting the top position for buy orders"
     }  

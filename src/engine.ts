@@ -1,5 +1,7 @@
 import { Connection, PublicKey, VersionedTransaction, TransactionMessage, Keypair } from '@solana/web3.js';
 import { GmEventService, GmClientService, GmEventType, Order } from '@staratlas/factory';
+import { encrypt, decrypt } from './crypto';
+import readline from 'readline';
 import fetch from "isomorphic-fetch";
 import base58 = require('bs58');
 import ordersJson from "./orders.json";
@@ -41,19 +43,52 @@ function myLog(
   console.log(new Date().toLocaleString(), (important ? '>>>>>>' : ''), data, (important ? '<<<<<<' : ''));
 }
 
-const init = async () => {
-  var param = process.argv.slice(2);
-  if (param.length >= 1) {
-    //First parameters is private key of your wallet
-    if (process.argv.slice(2)[0] !== '-') {
-      wallet = Keypair.fromSecretKey(base58.decode(process.argv.slice(2)[0]));
-    }
+const initWallet = async () => {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
 
-    isTest = param.length < 2 || process.argv.slice(3)[0] == "1";
+  if (config.privateKey.iv == "" || config.privateKey.content == "") {
+    rl.question('What is your private key?\n', function (privateKey) {
+      rl.question('What is your secret key (32 characters)?\n ', function (secretKey) {
+        var hash = encrypt(privateKey, secretKey);
+
+        config.privateKey.iv = hash.iv;
+        config.privateKey.content = hash.content;
+
+        var fs = require('fs');
+        fs.writeFile('./src/config.json', JSON.stringify(config), function (err: any) {
+          if (err) {
+            myLog(err);
+          }
+        });
+
+        console.log(`ris: ${privateKey} ${secretKey} ${hash.content}`);
+        rl.close();
+
+        wallet = Keypair.fromSecretKey(base58.decode(privateKey));
+
+        init();
+      });
+    });
+
   } else {
-    myLog("Invalid parameters", true);
-    return;
+    rl.question('What is your secret key (32 characters)?\n ', function (secretKey) {
+      wallet = Keypair.fromSecretKey(base58.decode(decrypt(config.privateKey, secretKey)));
+
+      rl.close();
+
+      init();
+    });
   }
+
+}
+
+async function init() {
+  var param = process.argv.slice(2);
+
+  isTest = param.length < 1 || process.argv.slice(2)[0] == "1";
 
   nfts = await getNfts();
 
@@ -85,6 +120,15 @@ const init = async () => {
       orderJsonActive[x].buyOrderQty = 0;
 
       errorDescription += `Market nr. ${x} - Wrong currency, possible values: ATLAS or USDC\n`;
+
+      break;
+    }
+
+    if (orderJsonActive[x].sellOrderQty > 0 && orderJsonActive[x].minimumSellPrice == 0) {
+      orderJsonActive[x].sellOrderQty = 0;
+      orderJsonActive[x].buyOrderQty = 0;
+
+      errorDescription += `Market nr. ${x} - Wrong minimumSellPrice, value must be greater than zero\n`;
 
       break;
     }
@@ -149,7 +193,7 @@ const init = async () => {
     return el.sellOrderQty > 0 || el.buyOrderQty > 0;
   });
 
-  myLog(`System start ${version} testMode: ${isTest} - active markets: ${orderJsonActive.length} - active orders: ${activeOrders} `);
+  myLog(`System start ${version} testMode: ${config.testMode} - active markets: ${orderJsonActive.length} - active orders: ${activeOrders} `);
 
   botEvent();
 
@@ -342,7 +386,7 @@ async function processActionsResult(order: any) {
 
           var newOrderTx: string = "";
 
-          if (!isTest) {
+          if (config.testMode == "off") {
             var tmpNewPriceContainer = order.actions[z].orderType == "sell" ? order.tmpNewPriceSell : order.tmpNewPriceBuy;
 
             myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] tmp: ${tmpNewPriceContainer} - newPrice ${order.actions[z].newPrice}`);
@@ -393,7 +437,7 @@ async function processActionsResult(order: any) {
             var cancelTx: string = "";
             var orderId = openOrdersContainer[y];
 
-            if (!isTest) {
+            if (config.testMode == "off") {
               if (order.actions[z].orderType == "sell") {
                 order.tmpNewPriceSell = order.actions[z].newPrice;
               } else {
@@ -523,7 +567,6 @@ function updateOrderTx(order: any, orderType: string, action: string, source: st
   myLog(`[${order.index}] - ${orderType} ${source} ${orderId} openOrders: ${container.length}; pendingNewOrders: ${containerPending}`);
 }
 
-
 async function placeOrder(itemMint: PublicKey, quoteMint: PublicKey, quantity: number, uiPrice: number, orderSide: any) {
   const priceBN = await gmClientService.getBnPriceForCurrency(
     connection,
@@ -574,4 +617,4 @@ async function cancelOrder(orderId: PublicKey) {
   return txid;
 }
 
-init();
+initWallet();
