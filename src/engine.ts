@@ -377,6 +377,34 @@ async function processActionsResult(order: any) {
 
     for (var z = 0; z < order.actions.length; z++) {
       switch (order.actions[z].method) {
+        case "cancelOrder":
+          var openOrdersContainer = order.actions[z].orderType == "sell" ? order.openOrdersSell : order.openOrdersBuy;
+
+          if (order.actions[z].orderType == "sell") {
+            order.lastActivitySell = new Date().getTime();
+          } else {
+            order.lastActivityBuy = new Date().getTime();
+          }
+
+          for (var y = 0; y < openOrdersContainer.length; y++) {
+            var cancelTx: string = "";
+            var orderId = openOrdersContainer[y];
+
+            if (config.testMode == "off") {
+              if (order.actions[z].orderType == "sell") {
+                order.tmpNewPriceSell = order.actions[z].newPrice;
+              } else {
+                order.tmpNewPriceBuy = order.actions[z].newPrice;
+              }
+
+              cancelTx = await cancelOrder(new PublicKey(orderId));
+              updateOrderTx(order, order.actions[z].orderType, "remove", "Cancel order", openOrdersContainer[y]);
+            }
+
+            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Cancel order id ${orderId} for ${order.actions[z].reason} txID: ${cancelTx}`);
+          }
+
+          break;
         case "placeOrder":
           if (order.actions[z].orderType == "sell") {
             order.lastActivitySell = new Date().getTime();
@@ -422,34 +450,6 @@ async function processActionsResult(order: any) {
           var containerPending = order.actions[z].orderType == "sell" ? order.pendingNewOrderCounterSell : order.pendingNewOrderCounterBuy;
 
           myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Place ${order.actions[z].newPrice} ${order.actions[z].orderType} order ${newOrderTx} for ${order.actions[z].reason} pendingNewOrders: ${containerPending}`);
-
-          break;
-        case "cancelOrder":
-          var openOrdersContainer = order.actions[z].orderType == "sell" ? order.openOrdersSell : order.openOrdersBuy;
-
-          if (order.actions[z].orderType == "sell") {
-            order.lastActivitySell = new Date().getTime();
-          } else {
-            order.lastActivityBuy = new Date().getTime();
-          }
-
-          for (var y = 0; y < openOrdersContainer.length; y++) {
-            var cancelTx: string = "";
-            var orderId = openOrdersContainer[y];
-
-            if (config.testMode == "off") {
-              if (order.actions[z].orderType == "sell") {
-                order.tmpNewPriceSell = order.actions[z].newPrice;
-              } else {
-                order.tmpNewPriceBuy = order.actions[z].newPrice;
-              }
-
-              cancelTx = await cancelOrder(new PublicKey(orderId));
-              updateOrderTx(order, order.actions[z].orderType, "remove", "Cancel order", openOrdersContainer[y]);
-            }
-
-            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Cancel order id ${orderId} for ${order.actions[z].reason} txID: ${cancelTx}`);
-          }
 
           break;
         default:
