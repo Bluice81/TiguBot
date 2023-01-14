@@ -128,11 +128,18 @@ async function init() {
 
       break;
     }
-    if (orderJsonActive[x].currency !== "ATLAS" && orderJsonActive[x].currency !== "USDC") {
+    if (orderJsonActive[x].currencySell !== "ATLAS" && orderJsonActive[x].currencySell !== "USDC") {
       orderJsonActive[x].sellOrderQty = 0;
+
+      errorDescription += `Market nr.${x} - Wrong sell currency, possible values: ATLAS or USDC\n`;
+
+      break;
+    }
+
+    if (orderJsonActive[x].currencyBuy !== "ATLAS" && orderJsonActive[x].currencyBuy !== "USDC") {
       orderJsonActive[x].buyOrderQty = 0;
 
-      errorDescription += `Market nr.${x} - Wrong currency, possible values: ATLAS or USDC\n`;
+      errorDescription += `Market nr.${x} - Wrong buy currency, possible values: ATLAS or USDC\n`;
 
       break;
     }
@@ -183,12 +190,20 @@ async function init() {
       orderJsonActive[x].tokenAccount = "";
     }
 
-    if (orderJsonActive[x].currency == "ATLAS") {
-      orderJsonActive[x].currency = ATLAS;
+    if (orderJsonActive[x].currencySell == "ATLAS") {
+      orderJsonActive[x].currencySell = ATLAS;
     }
 
-    if (orderJsonActive[x].currency == "USDC") {
-      orderJsonActive[x].currency = USDC;
+    if (orderJsonActive[x].currencySell == "USDC") {
+      orderJsonActive[x].currencySell = USDC;
+    }
+
+    if (orderJsonActive[x].currencyBuy == "ATLAS") {
+      orderJsonActive[x].currencyBuy = ATLAS;
+    }
+
+    if (orderJsonActive[x].currencyBuy == "USDC") {
+      orderJsonActive[x].currencyBuy = USDC;
     }
 
     activeOrders += orderJsonActive[x].sellOrderQty > 0 ? 1 : 0;
@@ -340,7 +355,7 @@ async function processOrder(order: any, orderType: string) {
         var serverOrder = JSON.parse(result.data);
 
         //server response security checks
-        if (serverOrder.orderType !== order.orderType || serverOrder.itemMint !== order.itemMint || serverOrder.currency !== order.currency ||
+        if (serverOrder.orderType !== order.orderType || serverOrder.itemMint !== order.itemMint || serverOrder.currency !== (order.orderType == "sell" ? order.currencySell : order.currencyBuy) ||
           (order.orderType == "sell" && serverOrder.newPrice < order.maximumBuyPrice) ||
           (order.orderType == "buy" && serverOrder.newPrice > order.maximumBuyPrice)) {
           myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Service Error: wrong data`);
@@ -441,7 +456,7 @@ async function processActionsResult(order: any) {
 
               var qty = order.actions[z].orderType == "sell" ? order.sellOrderQty : order.buyOrderQty;
 
-              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(order.currency), qty, order.actions[z].newPrice, order.actions[z].orderType);
+              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(order.actions[z].orderType == "sell" ? order.currencySell : order.currencyBuy), qty, order.actions[z].newPrice, order.actions[z].orderType);
 
               myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.actions[z].orderType} Place ${order.actions[z].newPrice} order ${newOrderTx} for ${order.actions[z].reason}`);
 
@@ -510,7 +525,7 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
         for (var x = 0; x < orderJsonActive.length; x++) {
           var el = orderJsonActive[x];
 
-          if (el.itemMint == order.orderMint && el.currency == order.currencyMint) {
+          if (el.itemMint == order.orderMint && (order.orderType == "sell" ? el.currencySell : el.currencyBuy) == order.currencyMint) {
             updateOrderTx(orderJsonActive[x], order.orderType, "add", "EVT_ I add my new order", order.id);
             break;
           }
@@ -523,7 +538,7 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
       for (var x = 0; x < orderJsonActive.length; x++) {
         var el = orderJsonActive[x];
 
-        if (order.owner == wallet.publicKey.toString() && el.itemMint == order.orderMint && el.currency == order.currencyMint) {
+        if (order.owner == wallet.publicKey.toString() && el.itemMint == order.orderMint && (order.orderType == "sell" ? el.currencySell : el.currencyBuy) == order.currencyMint) {
           if (eventType == GmEventType.orderModified && order.orderQtyRemaining == 0) {
             updateOrderTx(orderJsonActive[x], order.orderType, "remove", "EVT_ Remove my order for fill", order.id);
           }
@@ -533,7 +548,7 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
           }
         }
 
-        if (order.owner !== wallet.publicKey.toString() && el.itemMint == order.orderMint && ((el.sellOrderQty > 0 && order.orderType == "sell" && el.priceWallSell > 0) || (el.buyOrderQty > 0 && order.orderType == "buy" && el.priceWallBuy > 0)) && el.currency == order.currencyMint) {
+        if (order.owner !== wallet.publicKey.toString() && el.itemMint == order.orderMint && ((el.sellOrderQty > 0 && order.orderType == "sell" && el.priceWallSell > 0) || (el.buyOrderQty > 0 && order.orderType == "buy" && el.priceWallBuy > 0)) && (order.orderType == "sell" ? el.currencySell : el.currencyBuy) == order.currencyMint) {
           var nftName = nfts.filter(function (el) {
             return el.mint == order.orderMint;
           });
