@@ -48,7 +48,7 @@ function myLog(
   if (writeLogFile) {
     try {
       var fs = require('fs');
-      fs.writeFile(logPath, message + "\n", function (err: any) {
+      fs.writeFile(logPath, message + "\n", { flag: "a+" }, function (err: any) {
       });
     } catch (e) {
     }
