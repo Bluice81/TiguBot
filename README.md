@@ -56,7 +56,50 @@ for the next launches
 5. from the prompt, run the command npm start
 6. when prompted, enter your password.
 
-Command syntax<br />
+how to create/edit configuration file: orders.json
+1. Visit https://www.tigubot.com/ log in with the public address of your wallet and the apiKey that you previously purchased from the site.
+2. Go to the "Bot Settings" menu
+
+
+Through this page you can create your initial configuration and then copy it to the PC clipboard with the "Copy" link. Once copied you can paste it in the orders.json file (you will have to create this file inside the project folder the first time you use it).
+
+
+In the future you will use this section to upload your configuration for editing via the upload link. By clicking on the upload link you will need to select your orders.json file. Once the changes have been made, the steps are the same as those described in point 1. Having already the orders.json file, you will only have to delete its contents and paste the data from the clipboard.
+
+<b>---CONFIGURATION GRID---</b>
+The grid lists all SA Galactic Marketplace NFTs. They are grouped by category, and for each nft there are two lines: the first to configure sales orders and the second to configure purchase orders.
+
+Currency: you can change between USDC and ATLAS by clicking on the name of the currency. You can, for the same nft, have different currencies based on the type of order. In this way you can set up to buy in ATLAS and resell in USDC, obviously you will need to have the necessary currency in your wallet.
+
+Order qty: is the quantity that will be used in placing the order. Keep in mind that the bot works with single orders: one for the sale and one for the purchase. If you enter 2 in the "BUY" section, the system will place a single order with quantity 2.
+
+N.B.: to deactivate a market, simply set the order qty to zero on the type sell, buy or both
+
+Inventory (sell): in the case of sell, it indicates the minimum amount of NFTs that you will want to keep in the wallet. Therefore, if you have 3 nfts in your wallet and you want to sell 2 of them in single orders of a quantity, you will have to enter "Order qty": 1 and "Inventory":1. The system will place the first sales order of 1 nft, if it sells it then it will place the second only if the quantity in the wallet is greater than the "Inventory" value.
+
+Inventory (buy): in the case of a buy, it indicates the maximum amount of NFTs you will want to have in your wallet. "Order qty": 1 and "Inventory": 3 tells the bot that you want to buy up to a maximum of 3 NFTs (if you start with 0 amount of that NFT in your wallet)
+
+N.B.: the system has often been tested with Order qty = 1. Higher values could create anomalies in case of partially filled orders. In the worst case it would not place the sell or buy order there
+
+Limit price (sell): minimum selling price.
+Limit price (buy): maximum purchase price.
+
+N.B.: The logic of the bot is to occupy the first position of the list of sales or purchase orders. If it fails, due to the limited price, then it will try to occupy the following positions: 2, 3....
+
+Step raise: indicates the percentage of decrease (sell) or increase (buy) expressed in values from 0 to 1, where 0.02 = 2%. Since we will be competing with other bots, using an appropriate percentage avoids canceling/placing the order too many times. Evaluate the optimal value according to the market.
+
+KFPFM: Keep First Position For Minutes, if the system manages to occupy the first position and the gap with the 2nd exceeds the step raise the bot repositions itself on the 2nd position + step raise. This behavior creates an infinite loop with other bots. With this parameter you can decide the pause time, in minutes, with which to inhibit this behaviour. With KFPFM = 5 you tell the system, that if it manages to occupy the first position, to hold the order for 5 minutes. Once the time has expired, the system will evaluate whether to reposition it.
+
+Minimum price: it is the entry price. If you want to enter the market immediately with a specific price, use this field. Example I want to sell an opod at 500 up to a limit price of 450, while the market at the moment the best order is 700. To avoid a series of discount orders I start immediately with the minimum price valued at 500.
+
+
+The system will warn you if you enter the SELL / BUY sections incorrectly (zero sales price, or missing parameters), but it cannot check whether the parameters you entered can cause you losses: for example, if you set to sell an opod to $1 or if you set to sell it for $600 but your purchase price is $900. So first rule: check the parameters 3 times!.
+
+Through a combobox you can select the Active orders: those active and formally valid, Valued: those valued but with missing/incorrect fields and the "Invalid" ones with incorrect values.
+
+
+
+<b>Extra - Command syntax</b><br />
 npm start {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
 Example:<br />
 npm start ---> operating mode (orders will be placed)<br />
