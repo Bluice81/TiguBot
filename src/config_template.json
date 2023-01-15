@@ -3,7 +3,7 @@
     "apiServerAddress": "TiguBot address, it will be communicated to you together with your apiKey",
     "apiKey": "your api key",
     "privateKey": {
-        "iv": "leave blank, valued by the program",
-        "content": "leave blank, valued by the program"
+        "iv": "",
+        "content": ""
     }
 }
