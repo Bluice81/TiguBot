@@ -44,8 +44,7 @@ Only for the first launch
 7. from the prompt, run the command: npm install
 8. from the prompt, run the command npm start
 9. when prompted, enter your wallet private key.
-10. when prompetd, enter 34 characters long secrek key to save your encrypted private key
-11. when prompted, enter your secret key.
+10. when prompetd, enter 34 characters long password to save your encrypted private key. (If you lose this password, you can always repeat the initial procedure and choose a new one.)
 
 for the next launches
 1. Visit https://www.tigubot.com/
@@ -53,7 +52,7 @@ for the next launches
 3. upload your configurations, next copy the configuration and replace the content of your file called orders.json and save it
 4. open a new terminal window and go to the root of the program folder, where you will find the package.json file
 5. from the prompt, run the command npm start
-6. when prompted, enter your secret key.
+6. when prompted, enter your password.
 
 Command syntax<br />
 npm start {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />

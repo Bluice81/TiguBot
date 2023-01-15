@@ -63,7 +63,7 @@ const initWallet = async () => {
 
   if (config.privateKey.iv == "" || config.privateKey.content == "") {
     rl.question('What is your private key?\n', function (privateKey) {
-      rl.question('What is your secret key (32 characters)?\n ', function (secretKey) {
+      rl.question('Enter a password (32 characters long) to encrypt your private key (If you lose this password, you can always repeat the initial procedure and choose a new one.):\n ', function (secretKey) {
         var hash = encrypt(privateKey, secretKey);
 
         config.privateKey.iv = hash.iv;
@@ -76,7 +76,6 @@ const initWallet = async () => {
           }
         });
 
-        console.log(`ris: ${privateKey} ${secretKey} ${hash.content} `);
         rl.close();
 
         wallet = Keypair.fromSecretKey(base58.decode(privateKey));
