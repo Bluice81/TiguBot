@@ -465,9 +465,7 @@ async function processActionsResult(order: any, orderType: string) {
 
               var qty = orderType == "sell" ? order.sellOrderQty : order.buyOrderQty;
 
-              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(orderType == "sell" ? order.currencySell : order.currencyBuy), qty, order.actions[z].newPrice, orderType);
-
-              myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Place ${order.actions[z].newPrice} order ${newOrderTx} for ${order.actions[z].reason}`);
+              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(orderType == "sell" ? order.currencySell : order.currencyBuy), qty, order.actions[z].newPrice, orderType);              
 
               if (orderType == "sell") {
                 order.pendingNewOrderCounterSell.push(new Date());
@@ -488,7 +486,7 @@ async function processActionsResult(order: any, orderType: string) {
 
           var containerPending = orderType == "sell" ? order.pendingNewOrderCounterSell : order.pendingNewOrderCounterBuy;
 
-          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Place ${order.actions[z].newPrice} ${orderType} order ${newOrderTx} for ${order.actions[z].reason} pendingNewOrders: ${containerPending.length} `);
+          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Place ${order.actions[z].newPrice} order ${newOrderTx} for ${order.actions[z].reason} pendingNewOrders: ${containerPending.length} `);
 
           break;
         default:
