@@ -33,7 +33,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” 
 ---HELP AND SUPPORT--<br />
 Write to info@tigubot.com, and we will help you.
 
-NOTICE: The private key must never be sent to anyone. TiguBot will never ask you for your private key. The code does not export your private key outside your PC. Your private key will only be required on the first launch. After the first launch you will only be asked for the password with which your private key was encrypted.
+NOTICE: <b>The private key must never be sent to anyone. TiguBot will never ask you for your private key. The code does not export your private key outside your PC. Your private key will only be required on the first launch. After the first launch you will only be asked for the password with which your private key was encrypted.</b>
 
 Only for the first launch
 
