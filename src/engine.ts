@@ -436,11 +436,9 @@ async function processActionsResult(order: any, orderType: string) {
 
               cancelTx = await cancelOrder(new PublicKey(orderId));
 
-              if (cancelTx == "") {
-                throw new Error();
+              if (cancelTx !== "") {
+                updateOrderTx(order, orderType, "remove", "Cancel order", openOrdersContainer[y]);
               }
-
-              updateOrderTx(order, orderType, "remove", "Cancel order", openOrdersContainer[y]);
             }
 
             myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] ${orderType} - Cancel order id ${orderId} for ${order.actions[z].reason} txID: ${cancelTx} `);
