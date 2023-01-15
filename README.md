@@ -66,7 +66,7 @@ Through this page you can create your initial configuration and then copy it to 
 
 In the future you will use this section to upload your configuration for editing via the upload link. By clicking on the upload link you will need to select your orders.json file. Once the changes have been made, the steps are the same as those described in point 1. Having already the orders.json file, you will only have to delete its contents and paste the data from the clipboard.
 
-<b>---CONFIGURATION GRID---</b>
+<b>---CONFIGURATION GRID---</b><br />
 The grid lists all SA Galactic Marketplace NFTs. They are grouped by category, and for each nft there are two lines: the first to configure sales orders and the second to configure purchase orders.
 
 Currency: you can change between USDC and ATLAS by clicking on the name of the currency. You can, for the same nft, have different currencies based on the type of order. In this way you can set up to buy in ATLAS and resell in USDC, obviously you will need to have the necessary currency in your wallet.
