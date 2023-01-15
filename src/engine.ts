@@ -374,7 +374,6 @@ async function processOrder(order: any, orderType: string) {
         var orderNew = await processActionsResult(serverOrder, orderType);
 
         if (orderType == "sell") {
-          order.pendingNewOrderCounterSell = orderNew.pendingNewOrderCounterSell;
           order.tmpNewPriceSell = orderNew.tmpNewPriceSell;
 
           if (!order.openOrdersSyncSell) {
@@ -386,7 +385,6 @@ async function processOrder(order: any, orderType: string) {
           order.openOrdersSyncSell = orderNew.openOrdersSyncSell;
           order.stateSell = 0; //idle
         } else {
-          order.pendingNewOrderCounterBuy = orderNew.pendingNewOrderCounterBuy;
           order.tmpNewPriceBuy = orderNew.tmpNewPriceBuy;
 
           if (!order.openOrdersSyncBuy) {
