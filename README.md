@@ -23,7 +23,7 @@ Tigubot.com operates on the Star Atlas Galaxy Marketplace. All trades that have 
 
 Any/all users of Tigubot.com must follow the Star Atlas terms of service located here https://staratlas.com/terms-of-service. Specifically, all users should be acutely aware of Section 3.4(e) which explicilty forbids users from "engag[ing] in manipulative activity that violates the integrity of the prices of assets on the Marketplace...". A good rule of thumb is that any order which is placed on the Galaxy Marketplace should be a bonefide purchase/sell order, e.g. there is actual intent to buy/sell the asset tied with that purchase/sell order. Any violation of any terms of the Star Atlas terms of service will result in immediate suspension and termination of any API keys with no refund. All violations will also be reported to Star Atlas. 
 
-By presssing the accept button and/or by using any products of Tigubot.com, you agree to all terms set forth in this disclaimer.
+Using any products of Tigubot.com, you agree to all terms set forth in this disclaimer.
 
 The information provided on this website (https://www.tigubot.com/) does not constitute investment advice, financial advice, trading advice, or any other sort of advice and you should not treat any of the website's content as such. TiguBot does not recommend that any cryptocurrency should be bought, sold, or held by you. Do conduct your own due diligence and consult your financial advisor before making any investment decisions.  
 
