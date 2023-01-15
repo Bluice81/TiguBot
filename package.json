@@ -1,5 +1,5 @@
 {
-    "name": "bot2023",
+    "name": "tigu_bot",
     "version": "1.0.0",
     "description": "",
     "source": "src/engine.ts",
