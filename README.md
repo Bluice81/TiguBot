@@ -33,6 +33,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” 
 ---HELP AND SUPPORT--<br />
 Write to info@tigubot.com, and we will help you.
 
+NOTICE: The private key must never be sent to anyone. TiguBot will never ask you for your private key. The code does not export your private key outside your PC. Your private key will only be required on the first launch. After the first launch you will only be asked for the password with which your private key was encrypted.
+
 Only for the first launch
 
 1. Visit https://www.tigubot.com/
@@ -43,7 +45,7 @@ Only for the first launch
 6. open a new terminal window and go to the root of the program folder, where you will find the package.json file
 7. from the prompt, run the command: npm install
 8. from the prompt, run the command npm start
-9. when prompted, enter your wallet private key.
+9. when prompted, enter your wallet private key. 
 10. when prompetd, enter 34 characters long password to save your encrypted private key. (If you lose this password, you can always repeat the initial procedure and choose a new one.)
 
 for the next launches
