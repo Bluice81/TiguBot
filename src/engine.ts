@@ -435,6 +435,11 @@ async function processActionsResult(order: any, orderType: string) {
               }
 
               cancelTx = await cancelOrder(new PublicKey(orderId));
+
+              if (cancelTx == "") {
+                throw new Error();
+              }
+
               updateOrderTx(order, orderType, "remove", "Cancel order", openOrdersContainer[y]);
             }
 
@@ -465,7 +470,11 @@ async function processActionsResult(order: any, orderType: string) {
 
               var qty = orderType == "sell" ? order.sellOrderQty : order.buyOrderQty;
 
-              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(orderType == "sell" ? order.currencySell : order.currencyBuy), qty, order.actions[z].newPrice, orderType);              
+              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(orderType == "sell" ? order.currencySell : order.currencyBuy), qty, order.actions[z].newPrice, orderType);
+
+              if (newOrderTx == "") {
+                throw new Error();
+              }
 
               if (orderType == "sell") {
                 order.pendingNewOrderCounterSell.push(new Date());
@@ -605,51 +614,63 @@ function updateOrderTx(order: any, orderType: string, action: string, source: st
 }
 
 async function placeOrder(itemMint: PublicKey, quoteMint: PublicKey, quantity: number, uiPrice: number, orderSide: any) {
-  const priceBN = await gmClientService.getBnPriceForCurrency(
-    connection,
-    uiPrice,
-    quoteMint,
-    programId
-  );
+  var txid = "";
 
-  const orderTx = await gmClientService.getInitializeOrderTransaction(
-    connection,
-    wallet.publicKey,
-    itemMint,
-    quoteMint,
-    quantity,
-    priceBN,
-    programId,
-    orderSide
-  );
+  try {
+    const priceBN = await gmClientService.getBnPriceForCurrency(
+      connection,
+      uiPrice,
+      quoteMint,
+      programId
+    );
 
-  const transaction = new VersionedTransaction(
-    new TransactionMessage({
-      payerKey: wallet.publicKey,
-      recentBlockhash: (await connection.getLatestBlockhash('confirmed')).blockhash,
-      instructions: orderTx.transaction.instructions
-    }).compileToV0Message());
+    const orderTx = await gmClientService.getInitializeOrderTransaction(
+      connection,
+      wallet.publicKey,
+      itemMint,
+      quoteMint,
+      quantity,
+      priceBN,
+      programId,
+      orderSide
+    );
 
-  transaction.sign([wallet, ...orderTx.signers]);
+    const transaction = new VersionedTransaction(
+      new TransactionMessage({
+        payerKey: wallet.publicKey,
+        recentBlockhash: (await connection.getLatestBlockhash('confirmed')).blockhash,
+        instructions: orderTx.transaction.instructions
+      }).compileToV0Message());
 
-  const txid = await connection.sendTransaction(transaction, { maxRetries: 5 });
+    transaction.sign([wallet, ...orderTx.signers]);
+
+    txid = await connection.sendTransaction(transaction, { maxRetries: 5 });
+  } catch {
+
+  }
 
   return txid;
 }
 
 async function cancelOrder(orderId: PublicKey) {
-  const cancelTx = await gmClientService.getCancelOrderTransaction(connection, orderId, wallet.publicKey, programId);
+  var txid = "";
 
-  const transaction = new VersionedTransaction(
-    new TransactionMessage({
-      payerKey: wallet.publicKey,
-      recentBlockhash: (await connection.getLatestBlockhash('confirmed')).blockhash,
-      instructions: cancelTx.transaction.instructions
-    }).compileToV0Message());
+  try {
+    const cancelTx = await gmClientService.getCancelOrderTransaction(connection, orderId, wallet.publicKey, programId);
 
-  transaction.sign([wallet, ...cancelTx.signers]);
+    const transaction = new VersionedTransaction(
+      new TransactionMessage({
+        payerKey: wallet.publicKey,
+        recentBlockhash: (await connection.getLatestBlockhash('confirmed')).blockhash,
+        instructions: cancelTx.transaction.instructions
+      }).compileToV0Message());
 
-  const txid = await connection.sendTransaction(transaction, { maxRetries: 5 });
+    transaction.sign([wallet, ...cancelTx.signers]);
+
+    txid = await connection.sendTransaction(transaction, { maxRetries: 5 });
+  } catch {
+
+  }
 
   return txid;
 }
