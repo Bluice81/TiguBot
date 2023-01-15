@@ -2,3 +2,4 @@ node_modules
 src/orders.json
 src/config.json
 src/log/*.log
+package-lock.json
