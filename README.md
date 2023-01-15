@@ -1,4 +1,4 @@
-# bot2023Client
+# TiguBot
 
 Automated trading software for Galactic Marketplace of Star Atlas (https://play.staratlas.com/).
 
