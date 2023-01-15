@@ -159,8 +159,8 @@ async function init() {
     orderJsonActive[x].tmpNewPriceSell = 0;
     orderJsonActive[x].tmpNewPriceBuy = 0;
 
-    orderJsonActive[x].pendingNewOrderCounterSell = 0;
-    orderJsonActive[x].pendingNewOrderCounterBuy = 0;
+    orderJsonActive[x].pendingNewOrderCounterSell = [];
+    orderJsonActive[x].pendingNewOrderCounterBuy = [];
     orderJsonActive[x].openOrdersSell = [];
     orderJsonActive[x].openOrdersBuy = [];
 
@@ -302,14 +302,14 @@ async function processOrder(order: any, orderType: string) {
     order.counterLocal = counter;
     counter++;
 
-    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Checking order ${order.name} `);
+    myLog(`[${order.index}][${order.counterLocal} - xxx] - ${orderType} Checking order ${order.name} `);
 
     //Call api web services
-    order.orderType = orderType;
+    //order.orderType = orderType;
 
     var result: any;
     try {
-      result = await callBackendApi({ method: "getActions", wallet: wallet.publicKey.toString(), apiKey: config.apiKey, order: order });
+      result = await callBackendApi({ method: "getActions", wallet: wallet.publicKey.toString(), apiKey: config.apiKey, order: order, orderType: orderType });
       order.lastError = undefined;
     } catch {
       if (!order.lastError) {
@@ -334,13 +334,13 @@ async function processOrder(order: any, orderType: string) {
 
         order.actions = [];
         order.actions.push({
-          orderType: order.orderType,
+          orderType: orderType,
           method: "cancelOrder",
           newPrice: 0,
           reason: "server lost"
         });
 
-        var orderNew = await processActionsResult(order);
+        var orderNew = await processActionsResult(order, orderType);
 
         if (orderType == "sell") {
           order.stateSell = 0; //idle
@@ -357,14 +357,29 @@ async function processOrder(order: any, orderType: string) {
         var serverOrder = JSON.parse(result.data);
 
         //server response security checks
-        if (serverOrder.orderType !== order.orderType || serverOrder.itemMint !== order.itemMint || serverOrder.currency !== (order.orderType == "sell" ? order.currencySell : order.currencyBuy) ||
-          (order.orderType == "sell" && serverOrder.newPrice < order.maximumBuyPrice) ||
-          (order.orderType == "buy" && serverOrder.newPrice > order.maximumBuyPrice)) {
-          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Service Error: wrong data`);
+        var checkOrderType = serverOrder.orderType == orderType;
+        var checkItemMint = serverOrder.itemMint == order.itemMint;
+        var checkCurrency = (orderType == "sell" ? serverOrder.currencySell : serverOrder.currencyBuy) == (orderType == "sell" ? order.currencySell : order.currencyBuy);
+
+        var checkSellPriceFilter = serverOrder.actions.filter(function (el: any) {
+          return el.orderType == "sell" && el.method == "PlaceOrder" && el.newPrice < order.minimumSellPrice;
+        });
+
+        var checkBuyPriceFilter = serverOrder.actions.filter(function (el: any) {
+          return el.orderType == "buy" && el.method == "PlaceOrder" && el.newPrice > order.maximumBuyPrice;
+        });
+
+        var checkSellPrice = checkSellPriceFilter.length == 0;
+        var checkBuyPrice = checkBuyPriceFilter == 0;
+
+        if (!checkOrderType || !checkItemMint || !checkCurrency || !checkSellPrice || !checkBuyPrice) {
+          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Service Error: wrong data. checkOrderType: ${checkOrderType} checkItemMint: ${checkItemMint} checkCurrency: ${checkCurrency} checkSellPrice: ${checkSellPrice} checkBuyPrice: ${checkBuyPrice}`);
+          console.log(serverOrder.orderType + ";" + ";" + orderType);
+          console.log(serverOrder);
           break;
         }
 
-        var orderNew = await processActionsResult(serverOrder);
+        var orderNew = await processActionsResult(serverOrder, orderType);
 
         if (orderType == "sell") {
           order.pendingNewOrderCounterSell = orderNew.pendingNewOrderCounterSell;
@@ -401,16 +416,16 @@ async function processOrder(order: any, orderType: string) {
   }
 }
 
-async function processActionsResult(order: any) {
+async function processActionsResult(order: any, orderType: string) {
   try {
-    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.orderType} Checking result orders for: ${order.name} `);
+    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Checking result orders for: ${order.name} `);
 
     for (var z = 0; z < order.actions.length; z++) {
       switch (order.actions[z].method) {
         case "cancelOrder":
-          var openOrdersContainer = order.actions[z].orderType == "sell" ? order.openOrdersSell : order.openOrdersBuy;
+          var openOrdersContainer = orderType == "sell" ? order.openOrdersSell : order.openOrdersBuy;
 
-          if (order.actions[z].orderType == "sell") {
+          if (orderType == "sell") {
             order.lastActivitySell = new Date().getTime();
           } else {
             order.lastActivityBuy = new Date().getTime();
@@ -421,22 +436,22 @@ async function processActionsResult(order: any) {
             var orderId = openOrdersContainer[y];
 
             if (!isTest) {
-              if (order.actions[z].orderType == "sell") {
+              if (orderType == "sell") {
                 order.tmpNewPriceSell = order.actions[z].newPrice;
               } else {
                 order.tmpNewPriceBuy = order.actions[z].newPrice;
               }
 
               cancelTx = await cancelOrder(new PublicKey(orderId));
-              updateOrderTx(order, order.actions[z].orderType, "remove", "Cancel order", openOrdersContainer[y]);
+              updateOrderTx(order, orderType, "remove", "Cancel order", openOrdersContainer[y]);
             }
 
-            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Cancel order id ${orderId} for ${order.actions[z].reason} txID: ${cancelTx} `);
+            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] ${orderType} - Cancel order id ${orderId} for ${order.actions[z].reason} txID: ${cancelTx} `);
           }
 
           break;
         case "placeOrder":
-          if (order.actions[z].orderType == "sell") {
+          if (orderType == "sell") {
             order.lastActivitySell = new Date().getTime();
           } else {
             order.lastActivityBuy = new Date().getTime();
@@ -445,33 +460,33 @@ async function processActionsResult(order: any) {
           var newOrderTx: string = "";
 
           if (!isTest) {
-            var tmpNewPriceContainer = order.actions[z].orderType == "sell" ? order.tmpNewPriceSell : order.tmpNewPriceBuy;
+            var tmpNewPriceContainer = orderType == "sell" ? order.tmpNewPriceSell : order.tmpNewPriceBuy;
 
-            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] tmp: ${tmpNewPriceContainer} - newPrice ${order.actions[z].newPrice} `);
+            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} tmp: ${tmpNewPriceContainer} - newPrice ${order.actions[z].newPrice} `);
 
             try {
-              if (order.actions[z].orderType == "sell") {
+              if (orderType == "sell") {
                 order.tmpNewPriceSell = 0;
               } else {
                 order.tmpNewPriceBuy = 0;
               }
 
-              var qty = order.actions[z].orderType == "sell" ? order.sellOrderQty : order.buyOrderQty;
+              var qty = orderType == "sell" ? order.sellOrderQty : order.buyOrderQty;
 
-              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(order.actions[z].orderType == "sell" ? order.currencySell : order.currencyBuy), qty, order.actions[z].newPrice, order.actions[z].orderType);
+              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(orderType == "sell" ? order.currencySell : order.currencyBuy), qty, order.actions[z].newPrice, orderType);
 
-              myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.actions[z].orderType} Place ${order.actions[z].newPrice} order ${newOrderTx} for ${order.actions[z].reason}`);
+              myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Place ${order.actions[z].newPrice} order ${newOrderTx} for ${order.actions[z].reason}`);
 
-              if (order.actions[z].orderType == "sell") {
-                order.pendingNewOrderCounterSell++;
+              if (orderType == "sell") {
+                order.pendingNewOrderCounterSell.push(new Date());
               } else {
-                order.pendingNewOrderCounterBuy++;
+                order.pendingNewOrderCounterBuy.push(new Date());
               }
             }
             catch (e) {
-              myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.actions[z].orderType} Error placing order ${e} `);
+              myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Error placing order ${e} `);
 
-              if (order.actions[z].orderType == "sell") {
+              if (orderType == "sell") {
                 order.tmpNewPriceSell = order.actions[z].newPrice;
               } else {
                 order.tmpNewPriceBuy = order.actions[z].newPrice;
@@ -479,18 +494,18 @@ async function processActionsResult(order: any) {
             }
           }
 
-          var containerPending = order.actions[z].orderType == "sell" ? order.pendingNewOrderCounterSell : order.pendingNewOrderCounterBuy;
+          var containerPending = orderType == "sell" ? order.pendingNewOrderCounterSell : order.pendingNewOrderCounterBuy;
 
-          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Place ${order.actions[z].newPrice} ${order.actions[z].orderType} order ${newOrderTx} for ${order.actions[z].reason} pendingNewOrders: ${containerPending} `);
+          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] Place ${order.actions[z].newPrice} ${orderType} order ${newOrderTx} for ${order.actions[z].reason} pendingNewOrders: ${containerPending.length} `);
 
           break;
         default:
-          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] ${order.actions[z].reason} `);
+          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} ${order.actions[z].reason} `);
           break;
       }
     }
   } catch (e) {
-    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${order.orderType} ${e} `);
+    myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} ${e} `);
   }
 
   return order;
@@ -586,9 +601,9 @@ function updateOrderTx(order: any, orderType: string, action: string, source: st
     if (index == -1) {
       if (source !== 'sync') {
         if (orderType == "sell") {
-          order.pendingNewOrderCounterSell--;
+          order.pendingNewOrderCounterSell.shift();
         } else {
-          order.pendingNewOrderCounterBuy--;
+          order.pendingNewOrderCounterBuy.shift();
         }
       }
 
@@ -596,7 +611,7 @@ function updateOrderTx(order: any, orderType: string, action: string, source: st
     }
   }
 
-  myLog(`[${order.index}]- ${orderType} ${source} ${orderId} openOrders: ${container.length}; pendingNewOrders: ${containerPending} `);
+  myLog(`[${order.index}]- ${orderType} ${source} ${orderId} openOrders: ${container.length}; pendingNewOrders: ${containerPending.length} `);
 }
 
 async function placeOrder(itemMint: PublicKey, quoteMint: PublicKey, quantity: number, uiPrice: number, orderSide: any) {
