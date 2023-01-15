@@ -171,13 +171,6 @@ async function init() {
     orderJsonActive[x].openOrdersSyncSell = false;
     orderJsonActive[x].openOrdersSyncBuy = false;
 
-    if (!orderJsonActive[x].disableSafetyChecksSell) {
-      orderJsonActive[x].disableSafetyChecksSell = false;
-    }
-    if (!orderJsonActive[x].disableSafetyChecksSell) {
-      orderJsonActive[x].disableSafetyChecksBuy = false;
-    }
-
     //get token account of NFT
     try {
       var ris = await connection.getTokenAccountsByOwner(wallet.publicKey, {
