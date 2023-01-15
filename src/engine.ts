@@ -85,7 +85,7 @@ const initWallet = async () => {
     });
 
   } else {
-    rl.question('What is your secret key (32 characters)?\n ', function (secretKey) {
+    rl.question('What is your password (32 characters)?\n ', function (secretKey) {
       wallet = Keypair.fromSecretKey(base58.decode(decrypt(config.privateKey, secretKey)));
 
       rl.close();
