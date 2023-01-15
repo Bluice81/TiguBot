@@ -375,6 +375,7 @@ async function processOrder(order: any, orderType: string) {
 
         if (orderType == "sell") {
           order.tmpNewPriceSell = orderNew.tmpNewPriceSell;
+          order.lastActivitySell = orderNew.lastActivitySell;
 
           if (!order.openOrdersSyncSell) {
             for (var j = 0; j < orderNew.openOrdersSell.length; j++) {
@@ -386,6 +387,7 @@ async function processOrder(order: any, orderType: string) {
           order.stateSell = 0; //idle
         } else {
           order.tmpNewPriceBuy = orderNew.tmpNewPriceBuy;
+          order.lastActivityBuy = orderNew.lastActivityBuy;
 
           if (!order.openOrdersSyncBuy) {
             for (var j = 0; j < orderNew.openOrdersBuy.length; j++) {
