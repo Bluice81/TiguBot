@@ -389,7 +389,7 @@ async function nextJob(x: number, orderType: string) {
 
   var delay = Math.min(3000, diffFromStartProcess);
 
-  var diffLastActivity = (new Date().getTime() - order.lastActivitySell) / 1000;
+  var diffLastActivity = (new Date().getTime() - (orderType == "sell" ? order.lastActivitySell : order.lastActivityBuy)) / 1000;
   if (diffLastActivity > 20) {
     delay = 10000;
   }
