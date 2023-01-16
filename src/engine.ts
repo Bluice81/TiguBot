@@ -26,8 +26,6 @@ let nfts: any[] = [];
 let USDC = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 let ATLAS = 'ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx';
 
-let intArr: (string | number | NodeJS.Timeout | undefined)[] = [];
-
 let orderJsonActive: any[];
 
 let counter = 0;
@@ -158,6 +156,9 @@ async function init() {
     orderJsonActive[x].tmpNewPriceSell = 0;
     orderJsonActive[x].tmpNewPriceBuy = 0;
 
+    orderJsonActive[x].startProcessSell = new Date();
+    orderJsonActive[x].startProcessBuy = new Date();
+
     orderJsonActive[x].pendingNewOrderCounterSell = [];
     orderJsonActive[x].pendingNewOrderCounterBuy = [];
     orderJsonActive[x].openOrdersSell = [];
@@ -217,7 +218,7 @@ async function init() {
 
   botEvent();
 
-  await makeOrdersInterval();
+  await start();
 }
 
 async function getNfts() {
@@ -228,51 +229,16 @@ async function getNfts() {
   return response.json();
 }
 
-async function makeOrdersInterval() {
-  for (var x = 0; x < intArr.length; x++) {
-    clearInterval(intArr[x]);
-  }
-
+async function start() {
   for (var x = 0; x < orderJsonActive.length; x++) {
-    (function (x) {
-      if (orderJsonActive[x].sellOrderQty > 0) {
-        var delay = 1000;
+    if (orderJsonActive[x].sellOrderQty > 0) {
+      processOrder(orderJsonActive[x], "sell");
+    }
 
-        var diffLastActivity = (new Date().getTime() - orderJsonActive[x].lastActivitySell) / 1000;
-        if (diffLastActivity > 20) {
-          delay = 10000;
-        }
-
-        myLog(`[${orderJsonActive[x].index}]- sell-----> (${delay})`);
-
-        processOrder(orderJsonActive[x], "sell");
-        intArr.push(setInterval(function () {
-          processOrder(orderJsonActive[x], "sell");
-        }, delay))
-      }
-
-      if (orderJsonActive[x].buyOrderQty > 0) {
-        var delay = 1000;
-
-        var diffLastActivity = (new Date().getTime() - orderJsonActive[x].lastActivityBuy) / 1000;
-        if (diffLastActivity > 20) {
-          delay = 10000;
-        }
-
-        myLog(`[${orderJsonActive[x].index}]- buy-----> (${delay})`);
-
-        processOrder(orderJsonActive[x], "buy");
-        intArr.push(setInterval(function () {
-          processOrder(orderJsonActive[x], "buy");
-        }, delay))
-      }
-    })(x);
+    if (orderJsonActive[x].buyOrderQty > 0) {
+      processOrder(orderJsonActive[x], "buy");
+    }
   }
-
-  setTimeout(function () {
-    makeOrdersInterval();
-  }, 30000);
-
 }
 
 async function processOrder(order: any, orderType: string) {
@@ -282,12 +248,14 @@ async function processOrder(order: any, orderType: string) {
         return;
       }
 
+      order.startProcessSell = new Date();
       order.stateSell = 1; //running
     } else {
       if (order.stateBuy == 1) {
         return;
       }
 
+      order.startProcessBuy = new Date();
       order.stateBuy = 1; //running
     }
 
@@ -312,11 +280,13 @@ async function processOrder(order: any, orderType: string) {
       myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType}: last error server contact: ${lastErrorServerContact} minutes ago`);
 
       if (lastErrorServerContact < 5) {
-        if (orderType == "sell") {
-          order.stateSell = 0; //idle
-        } else {
-          order.stateBuy = 0; //idle
-        }
+        nextJob(order, orderType);
+
+        // if (orderType == "sell") {
+        //   order.stateSell = 0; //idle
+        // } else {
+        //   order.stateBuy = 0; //idle
+        // }
 
         return;
       } else {
@@ -332,13 +302,17 @@ async function processOrder(order: any, orderType: string) {
           reason: "server lost"
         });
 
-        var orderNew = await processActionsResult(order, orderType);
+        await processActionsResult(order, orderType);
 
-        if (orderType == "sell") {
-          order.stateSell = 0; //idle
-        } else {
-          order.stateBuy = 0; //idle
-        }
+        //var orderNew = await processActionsResult(order, orderType);
+
+        // if (orderType == "sell") {
+        //   order.stateSell = 0; //idle
+        // } else {
+        //   order.stateBuy = 0; //idle
+        // }
+
+        nextJob(order, orderType);
 
         return;
       }
@@ -385,7 +359,7 @@ async function processOrder(order: any, orderType: string) {
           }
 
           order.openOrdersSyncSell = orderNew.openOrdersSyncSell;
-          order.stateSell = 0; //idle
+          //order.stateSell = 0; //idle
         } else {
           order.tmpNewPriceBuy = orderNew.tmpNewPriceBuy;
           order.lastActivityBuy = orderNew.lastActivityBuy;
@@ -398,8 +372,11 @@ async function processOrder(order: any, orderType: string) {
           }
 
           order.openOrdersSyncBuy = orderNew.openOrdersSyncBuy;
-          order.stateBuy = 0; //idle
+          //order.stateBuy = 0; //idle
         }
+
+        nextJob(order, orderType);
+
         break;
       default:
         myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Service Error: ${result.code} ${result.data} `);
@@ -408,6 +385,30 @@ async function processOrder(order: any, orderType: string) {
   } catch (e) {
     myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} ${e} `);
   }
+}
+
+async function nextJob(order: any, orderType: string) {
+  if (orderType == "sell") {
+    order.stateSell = 0; //idle
+  } else {
+    order.stateBuy = 0; //idle
+  }
+
+  var diffFromStartProcess = Math.abs(order.startProcessSell.getTime() - new Date().getTime());
+  var diffFromStartProcess = diffFromStartProcess < 0 ? 0 : diffFromStartProcess;
+
+  var delay = Math.min(3000, diffFromStartProcess);
+
+  var diffLastActivity = (new Date().getTime() - order.lastActivitySell) / 1000;
+  if (diffLastActivity > 20) {
+    delay = 10000;
+  }
+
+  myLog(`[${order.index}]- ${orderType}-----> (${delay})`);
+
+  setTimeout(function () {
+    processOrder(order, orderType);
+  }, delay);
 }
 
 async function processActionsResult(order: any, orderType: string) {
