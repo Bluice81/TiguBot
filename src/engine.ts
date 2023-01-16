@@ -298,7 +298,7 @@ async function processOrder(x: number, orderType: string) {
           reason: "server lost"
         });
 
-        await processActionsResult(order, orderType);
+        await processActionsResult(order, orderType, -1);
 
         nextJob(x, orderType);
 
@@ -333,13 +333,9 @@ async function processOrder(x: number, orderType: string) {
           break;
         }
 
-        var orderNew = await processActionsResult(serverOrder, orderType);
+        var orderNew = await processActionsResult(serverOrder, orderType, x);
 
         if (orderType == "sell") {
-          order.tmpNewPriceSell = orderNew.tmpNewPriceSell;
-          order.lastActivitySell = orderNew.lastActivitySell;
-          order.pendingNewOrderCounterSell = orderNew.pendingNewOrderCounterSell;
-
           if (!order.openOrdersSyncSell) {
             for (var j = 0; j < orderNew.openOrdersSell.length; j++) {
               updateOrderTx(order, "sell", "add", "sync", orderNew.openOrdersSell[j]);
@@ -347,12 +343,7 @@ async function processOrder(x: number, orderType: string) {
           }
 
           order.openOrdersSyncSell = orderNew.openOrdersSyncSell;
-          //order.stateSell = 0; //idle
         } else {
-          order.tmpNewPriceBuy = orderNew.tmpNewPriceBuy;
-          order.lastActivityBuy = orderNew.lastActivityBuy;
-          order.pendingNewOrderCounterBuy = orderNew.pendingNewOrderCounterBuy;
-
           if (!order.openOrdersSyncBuy) {
             for (var j = 0; j < orderNew.openOrdersBuy.length; j++) {
               updateOrderTx(order, "buy", "add", "sync", orderNew.openOrdersBuy[j]);
@@ -360,7 +351,6 @@ async function processOrder(x: number, orderType: string) {
           }
 
           order.openOrdersSyncBuy = orderNew.openOrdersSyncBuy;
-          //order.stateBuy = 0; //idle
         }
 
         nextJob(x, orderType);
@@ -401,8 +391,10 @@ async function nextJob(x: number, orderType: string) {
   }, delay);
 }
 
-async function processActionsResult(order: any, orderType: string) {
+async function processActionsResult(order: any, orderType: string, x: number) {
   try {
+    var orderLocal: any = orderJsonActive[x];
+
     myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Checking result orders for: ${order.name} `);
 
     for (var z = 0; z < order.actions.length; z++) {
@@ -411,9 +403,9 @@ async function processActionsResult(order: any, orderType: string) {
           var openOrdersContainer = orderType == "sell" ? order.openOrdersSell : order.openOrdersBuy;
 
           if (orderType == "sell") {
-            order.lastActivitySell = new Date().getTime();
+            orderLocal.lastActivitySell = new Date().getTime();
           } else {
-            order.lastActivityBuy = new Date().getTime();
+            orderLocal.lastActivityBuy = new Date().getTime();
           }
 
           for (var y = 0; y < openOrdersContainer.length; y++) {
@@ -422,9 +414,9 @@ async function processActionsResult(order: any, orderType: string) {
 
             if (!isTest) {
               if (orderType == "sell") {
-                order.tmpNewPriceSell = order.actions[z].newPrice;
+                orderLocal.tmpNewPriceSell = order.actions[z].newPrice;
               } else {
-                order.tmpNewPriceBuy = order.actions[z].newPrice;
+                orderLocal.tmpNewPriceBuy = order.actions[z].newPrice;
               }
 
               cancelTx = await cancelOrder(new PublicKey(orderId));
@@ -440,9 +432,9 @@ async function processActionsResult(order: any, orderType: string) {
           break;
         case "placeOrder":
           if (orderType == "sell") {
-            order.lastActivitySell = new Date().getTime();
+            orderLocal.lastActivitySell = new Date().getTime();
           } else {
-            order.lastActivityBuy = new Date().getTime();
+            orderLocal.lastActivityBuy = new Date().getTime();
           }
 
           var newOrderTx: string = "";
@@ -454,9 +446,9 @@ async function processActionsResult(order: any, orderType: string) {
 
             try {
               if (orderType == "sell") {
-                order.tmpNewPriceSell = 0;
+                orderLocal.tmpNewPriceSell = 0;
               } else {
-                order.tmpNewPriceBuy = 0;
+                orderLocal.tmpNewPriceBuy = 0;
               }
 
               var qty = orderType == "sell" ? order.sellOrderQty : order.buyOrderQty;
@@ -468,18 +460,18 @@ async function processActionsResult(order: any, orderType: string) {
               }
 
               if (orderType == "sell") {
-                order.pendingNewOrderCounterSell.push(new Date());
+                orderLocal.pendingNewOrderCounterSell.push(new Date());
               } else {
-                order.pendingNewOrderCounterBuy.push(new Date());
+                orderLocal.pendingNewOrderCounterBuy.push(new Date());
               }
             }
             catch (e) {
               myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Error placing order ${e} `);
 
               if (orderType == "sell") {
-                order.tmpNewPriceSell = order.actions[z].newPrice;
+                orderLocal.tmpNewPriceSell = order.actions[z].newPrice;
               } else {
-                order.tmpNewPriceBuy = order.actions[z].newPrice;
+                orderLocal.tmpNewPriceBuy = order.actions[z].newPrice;
               }
             }
           }
