@@ -232,16 +232,18 @@ async function getNfts() {
 async function start() {
   for (var x = 0; x < orderJsonActive.length; x++) {
     if (orderJsonActive[x].sellOrderQty > 0) {
-      processOrder(orderJsonActive[x], "sell");
+      processOrder(x, "sell");
     }
 
     if (orderJsonActive[x].buyOrderQty > 0) {
-      processOrder(orderJsonActive[x], "buy");
+      processOrder(x, "buy");
     }
   }
 }
 
-async function processOrder(order: any, orderType: string) {
+async function processOrder(x: number, orderType: string) {
+  var order: any = orderJsonActive[x];
+
   try {
     if (orderType == "sell") {
       if (order.stateSell == 1) {
@@ -280,13 +282,7 @@ async function processOrder(order: any, orderType: string) {
       myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType}: last error server contact: ${lastErrorServerContact} minutes ago`);
 
       if (lastErrorServerContact < 5) {
-        nextJob(order, orderType);
-
-        // if (orderType == "sell") {
-        //   order.stateSell = 0; //idle
-        // } else {
-        //   order.stateBuy = 0; //idle
-        // }
+        nextJob(x, orderType);
 
         return;
       } else {
@@ -304,15 +300,7 @@ async function processOrder(order: any, orderType: string) {
 
         await processActionsResult(order, orderType);
 
-        //var orderNew = await processActionsResult(order, orderType);
-
-        // if (orderType == "sell") {
-        //   order.stateSell = 0; //idle
-        // } else {
-        //   order.stateBuy = 0; //idle
-        // }
-
-        nextJob(order, orderType);
+        nextJob(x, orderType);
 
         return;
       }
@@ -375,7 +363,7 @@ async function processOrder(order: any, orderType: string) {
           //order.stateBuy = 0; //idle
         }
 
-        nextJob(order, orderType);
+        nextJob(x, orderType);
 
         break;
       default:
@@ -387,7 +375,9 @@ async function processOrder(order: any, orderType: string) {
   }
 }
 
-async function nextJob(order: any, orderType: string) {
+async function nextJob(x: number, orderType: string) {
+  var order: any = orderJsonActive[x];
+
   if (orderType == "sell") {
     order.stateSell = 0; //idle
   } else {
@@ -407,7 +397,7 @@ async function nextJob(order: any, orderType: string) {
   myLog(`[${order.index}]- ${orderType}-----> (${delay})`);
 
   setTimeout(function () {
-    processOrder(order, orderType);
+    processOrder(x, orderType);
   }, delay);
 }
 
@@ -572,7 +562,7 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
 
           if (nftName.length == 1) {
             myLog(`EVT_ check market[${el.index}][${el.counterLocal} - ${el.counter}] for ${order.orderType} order modified / removed ${nftName[0].name} qty: ${order.orderQtyRemaining} * ${order.uiPrice} USDC`);
-            processOrder(orderJsonActive[x], order.orderType);
+            processOrder(x, order.orderType);
           }
 
           break;
@@ -611,7 +601,7 @@ function updateOrderTx(order: any, orderType: string, action: string, source: st
     }
   }
 
-  myLog(`[${order.index}]- ${orderType} ${source} ${orderId} openOrders: ${container.length}; pendingNewOrders: ${containerPending.length} `);
+  myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} ${source} ${orderId} openOrders: ${container.length}; pendingNewOrders: ${containerPending.length} `);
 }
 
 async function placeOrder(itemMint: PublicKey, quoteMint: PublicKey, quantity: number, uiPrice: number, orderSide: any) {
