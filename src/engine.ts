@@ -236,7 +236,7 @@ async function makeOrdersInterval() {
   for (var x = 0; x < orderJsonActive.length; x++) {
     (function (x) {
       if (orderJsonActive[x].sellOrderQty > 0) {
-        var delay = 3000;
+        var delay = 1000;
 
         var diffLastActivity = (new Date().getTime() - orderJsonActive[x].lastActivitySell) / 1000;
         if (diffLastActivity > 20) {
@@ -252,7 +252,7 @@ async function makeOrdersInterval() {
       }
 
       if (orderJsonActive[x].buyOrderQty > 0) {
-        var delay = 3000;
+        var delay = 1000;
 
         var diffLastActivity = (new Date().getTime() - orderJsonActive[x].lastActivityBuy) / 1000;
         if (diffLastActivity > 20) {
