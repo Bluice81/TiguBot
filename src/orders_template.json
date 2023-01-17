@@ -14,6 +14,8 @@
         "keepFirstPositionForMinuteSell": "When you have obtained the first position, for sell orders, hold it for at least xx minutes",
         "keepFirstPositionForMinuteBuy": "When you have obtained the first position, for buy orders, hold it for at least xx minutes",
         "entryPriceSell": "This price, if greater than zero, will be used when getting the top position for sell orders",
-        "entryPriceBuy": "This price, if greater than zero, will be used when getting the top position for buy orders"
+        "entryPriceBuy": "This price, if greater than zero, will be used when getting the top position for buy orders",
+        "priceSell2P": "Price for 2nd position sell",
+        "priceBuy2P": "Price for 2nd position buy"
     }  
 ]

@@ -229,7 +229,7 @@ async function getNfts() {
   return response.json();
 }
 
-async function start() {
+function start() {
   for (var x = 0; x < orderJsonActive.length; x++) {
     if (orderJsonActive[x].sellOrderQty > 0) {
       processOrder(x, "sell");
@@ -377,7 +377,7 @@ async function nextJob(x: number, orderType: string) {
   var diffFromStartProcess = Math.abs(order.startProcessSell.getTime() - new Date().getTime());
   var diffFromStartProcess = diffFromStartProcess < 0 ? 0 : diffFromStartProcess;
 
-  var delay = Math.min(3000, diffFromStartProcess);
+  var delay = Math.min(1000, diffFromStartProcess);
 
   var diffLastActivity = (new Date().getTime() - (orderType == "sell" ? order.lastActivitySell : order.lastActivityBuy)) / 1000;
   if (diffLastActivity > 20) {
