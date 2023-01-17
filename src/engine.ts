@@ -384,7 +384,7 @@ async function nextJob(x: number, orderType: string) {
     delay = 10000;
   }
 
-  myLog(`[${order.index}]- ${orderType}-----> (delay(ms): ${delay})`);
+  myLog(`[${order.index}]- ${orderType}-----> (delay (ms): ${delay})`);
 
   setTimeout(function () {
     processOrder(x, orderType, false);
