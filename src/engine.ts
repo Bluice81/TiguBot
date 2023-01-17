@@ -232,16 +232,16 @@ async function getNfts() {
 function start() {
   for (var x = 0; x < orderJsonActive.length; x++) {
     if (orderJsonActive[x].sellOrderQty > 0) {
-      processOrder(x, "sell");
+      processOrder(x, "sell", false);
     }
 
     if (orderJsonActive[x].buyOrderQty > 0) {
-      processOrder(x, "buy");
+      processOrder(x, "buy", false);
     }
   }
 }
 
-async function processOrder(x: number, orderType: string) {
+async function processOrder(x: number, orderType: string, noNextJob: boolean) {
   var order: any = orderJsonActive[x];
 
   try {
@@ -387,7 +387,7 @@ async function nextJob(x: number, orderType: string) {
   myLog(`[${order.index}]- ${orderType}-----> (${delay})`);
 
   setTimeout(function () {
-    processOrder(x, orderType);
+    processOrder(x, orderType, false);
   }, delay);
 }
 
@@ -554,7 +554,7 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
 
           if (nftName.length == 1) {
             myLog(`EVT_ check market[${el.index}][${el.counterLocal} - ${el.counter}] for ${order.orderType} order modified / removed ${nftName[0].name} qty: ${order.orderQtyRemaining} * ${order.uiPrice} USDC`);
-            processOrder(x, order.orderType);
+            processOrder(x, order.orderType, true);
           }
 
           break;
