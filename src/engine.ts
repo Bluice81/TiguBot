@@ -547,7 +547,7 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
           }
         }
 
-        if (order.owner !== wallet.publicKey.toString() && el.itemMint == order.orderMint && ((el.sellOrderQty > 0 && order.orderType == "sell" && el.priceWallSell > 0) || (el.buyOrderQty > 0 && order.orderType == "buy" && el.priceWallBuy > 0)) && (order.orderType == "sell" ? el.currencySell : el.currencyBuy) == order.currencyMint) {
+        if (order.owner !== wallet.publicKey.toString() && el.itemMint == order.orderMint && ((el.sellOrderQty > 0 && order.orderType == "sell" && el.priceSell2P && el.priceSell2P > 0) || (el.buyOrderQty > 0 && order.orderType == "buy" && el.priceBuy2P && el.priceBuy2P > 0)) && (el.orderType == "sell" ? el.currencySell : el.currencyBuy) == order.currencyMint) {
           var nftName = nfts.filter(function (el) {
             return el.mint == order.orderMint;
           });
