@@ -55,18 +55,19 @@ Instructions for the first launch of TiguBot:
 16. When prompted, enter a 34 character password which will encrypt your private key. This will be the password you enter to start the program going forward. If you lose this password, you can restore the fields in the "config.json" file to the same values as the "config_template.json" to start again from step 15.
 17. To start the bot, see the command syntax listed below.
 
-for the next launches
-1. Visit https://www.tigubot.com/
-2. use "Bot settings" to create the configuration.
-3. upload your configurations, next copy the configuration and replace the content of your file called orders.json and save it
-4. open a new terminal window and go to the root of the program folder, where you will find the package.json file
-5. from the prompt, run the command npm start
-6. when prompted, enter your password.
+Instructions for all subsequent launches and edits to the orders.json file:
 
-how to create/edit configuration file: orders.json
+1. Visit https://www.tigubot.com/ and use the bot settings to create/update your "orders.json" file.
+2. Your prior "orders.json" file can be uploaded to the bot settings where edits can be made.
+3. Once your updates to the bot configuration are completed, use the "copy" link to paste into the "orders.json" file which was created earlier.
+4. Open a new terminal window and navigate to the root of the bot program folder, as installed in earlier in step 3.
+5. From the command prompt, run the command: npm start
+6. When prompted, enter your password.
+
+How to create/edit configuration file: orders.json
+
 1. Visit https://www.tigubot.com/ log in with the public address of your wallet and the apiKey that you previously purchased from the site.
 2. Go to the "Bot Settings" menu
-
 
 Through this page you can create your initial configuration and then copy it to the PC clipboard with the "Copy" link. Once copied you can paste it in the orders.json file (you will have to create this file inside the project folder the first time you use it).
 
