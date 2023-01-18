@@ -74,7 +74,7 @@ const initWallet = async () => {
           }
         });
         rl.close();
-        
+
       });
     });
 
@@ -312,11 +312,11 @@ async function processOrder(x: number, orderType: string, noNextJob: boolean) {
         var checkCurrency = (orderType == "sell" ? serverOrder.currencySell : serverOrder.currencyBuy) == (orderType == "sell" ? order.currencySell : order.currencyBuy);
 
         var checkSellPriceFilter = serverOrder.actions.filter(function (el: any) {
-          return el.orderType == "sell" && el.method == "PlaceOrder" && el.newPrice < order.minimumSellPrice;
+          return el.orderType == "sell" && el.method == "PlaceOrder" && el.newPrice > order.minimumSellPrice && el.newPrice > 0;
         });
 
         var checkBuyPriceFilter = serverOrder.actions.filter(function (el: any) {
-          return el.orderType == "buy" && el.method == "PlaceOrder" && el.newPrice > order.maximumBuyPrice;
+          return el.orderType == "buy" && el.method == "PlaceOrder" && el.newPrice < order.maximumBuyPrice && el.newPrice > 0;
         });
 
         var checkSellPrice = checkSellPriceFilter.length == 0;
