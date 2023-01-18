@@ -33,7 +33,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” 
 ---HELP AND SUPPORT--<br />
 Write to info@tigubot.com for any assistance and inquiries.
 
-NOTICE: <b>The private key must never be sent to anyone. TiguBot will never ask you for your private key. The code does not export your private key outside your PC. Your private key will only be required on the first launch. After the first launch you will only be asked for the password with which your private key was encrypted.</b>
+NOTICE: <b>Your wallet private key should never be sent to anyone. TiguBot will never ask you for your private key except during the first local install. The code does not export your private key outside of the local installation. After the first launch your private key will be encrypted and TiguBot will only ask for the password with which your private key was encrypted. It is your responsbility to monitor the github respository for any changes that may potentially affect your private key.</b>
 
 Only for the first launch
 
