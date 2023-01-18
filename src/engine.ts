@@ -472,9 +472,9 @@ async function processActionsResult(order: any, orderType: string, x: number) {
             }
           }
 
-          var containerPending = orderType == "sell" ? order.pendingNewOrderCounterSell : order.pendingNewOrderCounterBuy;
+          var containerPending = orderType == "sell" ? orderLocal.pendingNewOrderCounterSell : orderLocal.pendingNewOrderCounterBuy;
 
-          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Place ${order.actions[z].newPrice} order ${newOrderTx} for ${order.actions[z].reason} pendingNewOrders: ${containerPending.length} `);
+          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Place ${order.actions[z].newPrice} for ${order.actions[z].reason} txID: ${newOrderTx} - pendingNewOrders: ${containerPending.length} `);
 
           break;
         default:
