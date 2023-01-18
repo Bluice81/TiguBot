@@ -1,6 +1,6 @@
 # TiguBot
 
-Automated trading software for the Galactic Marketplace of Star Atlas (https://play.staratlas.com/).
+Automated trading software for the Galactic Marketplace of Star Atlas (https://play.staratlas.com/market).
 
 <b>An API key is necessary to use this software.</b> Once an API key has been purchased, please Follow the instructions below to install and setup the bot.
 
@@ -38,10 +38,10 @@ NOTICE: <b>Your wallet private key should never be sent to anyone. TiguBot will 
 Instructions for the first launch of TiguBot:
 
 1. Download and install Node JS from https://nodejs.org/en/download/.
-2. Navigate to https://github.com/Bluice81/TiguBot and download a copy of the code via preferred methodology. (ZIP is probably easiest if you do not have experience with git.)
-3. Unzip the code to a local directoy on the machine you are planning to run the bot from.
+2. Navigate to https://github.com/Bluice81/TiguBot and download a copy of the code via your preferred methodology. (ZIP is probably easiest if you do not have experience with git.)
+3. Unzip the code to a local directory on the machine you are planning to run the bot from.
 4. Visit https://www.tigubot.com/ and purchase an API key from the home page.
-5. Follow all instructions listed during the purchase of the API.
+5. Follow all instructions listed during the purchase of the API key.
 6. Once the API key has been received, visit https://www.tigubot.com/ and login using your API key and the pubkey of the wallet you intend to use for the bot.
 7. Navigate to "Bot settings" to create a configuration json file for the bot. See "CONFIGURATION GRID BELOW" for instructions on specific settings.
 8. Copy the configuration using the COPY link, and paste into a new file called "orders.json".
@@ -51,7 +51,7 @@ Instructions for the first launch of TiguBot:
 12. Open a new terminal/command window and navigate to the root of the program folder which was unzipped in step 3 above.
 13. From the command prompt, run the command: npm install
 14. From the command prompt, run the command: npm start
-15. When prompted, enter your full wallet private key, this should be an 88 character key as exported from Phantom. If you are not exporting from Phantom and do not an 88 character key, please contact us for assistance.
+15. When prompted, enter your full wallet private key, this should be an 88 character key as exported from Phantom. 
 16. When prompted, enter a 34 character password which will encrypt your private key. This will be the password you enter to start the program going forward. If you lose this password, you can restore the fields in the "config.json" file to the same values as the "config_template.json" to start again from step 15.
 17. To start the bot, see the command syntax listed below.
 
@@ -66,8 +66,8 @@ Instructions for all subsequent launches and edits to the orders.json file:
 
 How to create/edit configuration file: orders.json:
 
-1. Visit https://www.tigubot.com/ log in with the public address of your wallet and the apiKey that you previously purchased from the site.
-2. Go to the "Bot Settings" menu,
+1. Visit https://www.tigubot.com/ and log in with the public address of your wallet and the apiKey that you previously purchased from the site.
+2. Go to the "Bot Settings" menu:
 
 Through this page you can create your initial configuration and then copy it to the PC clipboard with the "Copy" link. Once copied you can paste it into the orders.json file (You will have to create this file inside the project folder the first time you use it.)
 
@@ -76,29 +76,29 @@ In the future you will use this section to upload your configuration for editing
 <b>---CONFIGURATION GRID---</b><br />
 The grid lists all SA Galactic Marketplace assets. They are grouped by category and for each asset there are two lines: 1) The first to configure sales orders and 2) The second to configure purchase orders.
 
-Currency: you can change between USDC and ATLAS by clicking on the name of the currency. You can, for the same asset, have different currencies based on the type of order. In this way you can setup to buy in ATLAS and resell in USDC. You will need the respective currencies in your wallet.
+Currency: you can change between USDC and ATLAS by clicking on the name of the currency. You can, for the same asset, have different currencies based on the type of order. In this way you can configure to buy in ATLAS and resell in USDC. You will need the respective currencies in your wallet to place orders.
 
 Order qty: This is the order quantity that will be used in placing the order. Please keep in mind that the bot works with single orders: one for the sale and one for the purchase. If you enter 2 in the "BUY" section, the system will place a single buy order with a quantity of 2.
 
-N.B.: To deactivate a market, simply set the order qty to 0 on the order type which you wish to deactivate, sell, buy, or both.
+Important: To deactivate a market, simply set the order qty to 0 on the order type which you wish to deactivate, sell, buy, or both.
 
 Inventory (Sell): In the case of sell orders, this field indicates the minimum amount of asetss that you will want to keep in the wallet. For example, if you have 3 assets in your wallet and you want to sell 2 of those in single orders, you will have to enter "Order qty": 1 and "Inventory": 1. The system will place the first sales order of 1 asset, and if that asset is sold, the bot will place a second sell order. In this situation, the bot would not sell the third asset because the minimum inventory is 1. An order is only sold if the quantity in the wallet is greater than the "Inventory" value.
 
-Inventory (Buy): In the case of buy orders, this filed indicates the maximum amount of assets of this type in your wallet. "Order qty": 1 and "Inventory": 3 will tell the bot to buy up to a maximum of 3 assets in this category, assuming you started with 0 assets in your wallet.
+Inventory (Buy): In the case of buy orders, this field indicates the maximum amount of assets of this type in your wallet. "Order qty": 1 and "Inventory": 3 will tell the bot to buy up to a maximum of 3 assets in this category, assuming you started with 0 assets in your wallet.
 
-Limit price (Sell): Minimum selling price. This indicates the lowest price for which the asset will sell. The bot will take the current lowest price and bid until it reaches the first position in the sell position. If it cannot claim the first position, it will either fall back to the second position if set, or the next lowest sell order.
+Limit price (Sell): Minimum selling price. This indicates the lowest price for which the asset will sell. The bot will take the current lowest price and bid until it reaches the first position. If it cannot claim the first position, it will either fall back to the second position if set, or the next lowest sell order.
 
 Limit price (Buy): This is the maximum purchase price an asset will be purchased at. It will followed the same bidding procedure as noted above in the Sell section.
 
-N.B.: The bot will try to occupy the first position of the list of sales or purchase orders. If it fails, due to the limited price, then it will try to occupy the following positions: 2, 3....
+Important: The bot will try to occupy the first position of the list of sales or purchase orders. If it fails, due to the limited price, then it will try to occupy the following positions: 2, 3....
 
-Step raise: indicates the percentage of decrease (sell) or increase (buy) expressed in values from 0 to 1, where 0.02 = 2%. Since we will be competing with other bids, using an appropriate percentage avoids canceling/placing the order too many times. 1% (0.001) is a good starting point but the optimal value may vary according to the market.
+Step raise: Indicates the percentage of decrease (sell) or increase (buy) expressed in values from 0 to 1, where 0.02 = 2%. Since we will be competing with other bids, using an appropriate percentage avoids canceling/placing the order too many times. 1% (0.01) is a good starting point but the optimal value may vary according to the market.
 
-KFPFM: Keep First Position For Minutes, if the system manages to occupy the first position and the gap with the 2nd exceeds the step raise the bot repositions itself on the 2nd position + step raise. This behavior creates an infinite loop with other bots. With this parameter you can decide the pause time, in minutes, with which to inhibit this behaviour. With KFPFM = 5 you tell the system, that if it manages to occupy the first position, to hold the order for 5 minutes. Once the time has expired, the system will evaluate whether to reposition it.
+KFPFM: Keep First Position For Minutes - If the system manages to occupy the first position and the gap with the 2nd exceeds the step raise the bot will reposition itself on the 2nd position + step raise. This behavior can creates an infinite loop with other bids if those other bids are continously cancelled. With this parameter you can decide the pause time, in minutes, with which to hold the top position. With KFPFM = 5, if the bot manages to occupy the first position, it will hold the top position for 5 minutes. Once the time has expired, the system will evaluate whether to reposition it. Users can also take advantage of this system by creating fake bids to increase your buy/sell price. In these situations, it is best to have the KFPFM set at a low value.
 
-Minimum price: This is the entry price for the market. If you want to enter the market immediately with a specific price, use this field. For example, if I want to sell an opod at 500 up to a limit price of 450, while the current market's best order is 700. To avoid bidding down from 700, this field will start your bid at 500.
+Minimum price: This is the entry price for the market. If you want to enter the market immediately with a specific price, use this field. For example, if you want to sell an opod at 500 up to a limit price of 450, while the current market's best order is 700. To avoid bidding down from 700, this field will start your bid at 500.
 
-2nd position: This field will set the price where the bot cannot obtain the top bid but wants to hold a lower position. For example, if there is an Opod for sell at 450 and 650, and your minimum sell price is 500, the bot will occupy a sell price of 649 because it cannot beat the price of 450. If you set a second position price of 501, then the bot will bid 501. The final Opod market would have 1) 450, 501, and 650.
+2nd position: This field will set the price where the bot cannot obtain the top bid but wants to hold a lower position. For example, if there is an Opod for sell at 450 and 650, and your minimum sell price is 500, the bot will occupy a sell price of 649 because it cannot beat the price of 450. If you set a second position price of 501, then the bot will bid 501. The final Opod market would have orders of 450, 501, and 650.
 
 The system will warn you if you enter any parameters incorrectly (zero sales price, or missing parameters), but it cannot and will not determine whether the parameters that have been entered can cause any losses, For example, if you set the sell price of an opod to $1 or if you set to sell price for $600 but your original purchase price was $900. Triple check your parameters every time!
 
