@@ -90,10 +90,6 @@ const initWallet = async () => {
 
 }
 
-async function exit() {
-  return process.exit(0);
-}
-
 async function init() {
   var param = process.argv.slice(2);
 
