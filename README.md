@@ -1,8 +1,8 @@
 # TiguBot
 
-Automated trading software for Galactic Marketplace of Star Atlas (https://play.staratlas.com/).
+Automated trading software for the Galactic Marketplace of Star Atlas (https://play.staratlas.com/).
 
-<b>To use the software it is necessary to buy an apiKey.</b> Follow the instructions below.
+<b>An API key is necessary to use this software.</b> Once an API key has been purchased, please Follow the instructions below to install and setup the bot.
 
 ---DISCLAIMER---<br />
 Tigubot.com and its affilliates, creators, sponsors, or anyone associated with this program are not responsible for any losses and/or missed gains that may incur from any use of this program, whether directly or indirectly.  
