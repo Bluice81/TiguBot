@@ -106,10 +106,11 @@ The orders can be filtered through the combobox: 1) Active orders: those active 
 
 
 
-<b>Extra - Command syntax</b><br />
+<b>Bot Start Up - Command syntax</b><br />
+At the command prompt, enter the following commands:
 npm start {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
 Example:<br />
-npm start ---> operating mode (orders will be placed)<br />
-npm start 1 ---> for test mode, no orders will be placed. Useful to see the actions the bot will do without executing them.<br />
-npm start 1 1 ---> for test mode and save log file<br />
-npm start 0 1 ---> operating mode (orders will be placed) and save log file<br />
+npm start ---> operating mode (orders will be placed).<br />
+npm start 1 ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them.<br />
+npm start 1 1 ---> for test mode and saving a log file.<br />
+npm start 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />
