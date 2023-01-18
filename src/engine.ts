@@ -73,12 +73,8 @@ const initWallet = async () => {
             myLog(err);
           }
         });
-
         rl.close();
-
-        wallet = Keypair.fromSecretKey(base58.decode(privateKey));
-
-        init();
+        
       });
     });
 
@@ -92,6 +88,10 @@ const initWallet = async () => {
     });
   }
 
+}
+
+async function exit() {
+  return process.exit(0);
 }
 
 async function init() {
