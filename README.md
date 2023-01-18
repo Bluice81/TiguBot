@@ -98,6 +98,8 @@ KFPFM: Keep First Position For Minutes, if the system manages to occupy the firs
 
 Minimum price: This is the entry price for the market. If you want to enter the market immediately with a specific price, use this field. For example, if I want to sell an opod at 500 up to a limit price of 450, while the current market's best order is 700. To avoid bidding down from 700, this field will start your bid at 500.
 
+2nd position: This field will set the price where the bot cannot obtain the top bid but wants to hold a lower position. For example, if there is an Opod for sell at 450 and 650, and your minimum sell price is 500, the bot will occupy a sell price of 649 because it cannot beat the price of 450. If you set a second position price of 501, then the bot will bid 501. The final Opod market would have 1) 450, 501, and 650.
+
 The system will warn you if you enter any parameters incorrectly (zero sales price, or missing parameters), but it cannot and will not determine whether the parameters that have been entered can cause any losses, For example, if you set the sell price of an opod to $1 or if you set to sell price for $600 but your original purchase price was $900. Triple check your parameters every time!
 
 The orders can be filtered through the combobox: 1) Active orders: those active and with valid settings, 2) Valued: those markets with values but with some missing/incorrect fields and 3) Invalid: Markets with incorrect values.
