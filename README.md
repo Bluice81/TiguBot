@@ -35,18 +35,25 @@ Write to info@tigubot.com for any assistance and inquiries.
 
 NOTICE: <b>Your wallet private key should never be sent to anyone. TiguBot will never ask you for your private key except during the first local install. The code does not export your private key outside of the local installation. After the first launch your private key will be encrypted and TiguBot will only ask for the password with which your private key was encrypted. It is your responsbility to monitor the github respository for any changes that may potentially affect your private key.</b>
 
-Only for the first launch
+Instructions for the first launch of TiguBot:
 
-1. Visit https://www.tigubot.com/
-2. use "Bot settings" to create the configuration.
-3. copy the configuration to a new file called orders.json and save it in the same path as the "engine.ts" file
-4. create a new "config.json" file with the contents of the config_template.json file and save it in the same path as the "engine.ts" file. 
-5. values the "rpc" and "apiKey" fields in the newly created config.json file. Do not value the privateKey field.
-6. open a new terminal window and go to the root of the program folder, where you will find the package.json file
-7. from the prompt, run the command: npm install
-8. from the prompt, run the command npm start
-9. when prompted, enter your wallet private key. 
-10. when prompetd, enter 34 characters long password to save your encrypted private key. (If you lose this password, you can always repeat the initial procedure and choose a new one.)
+1. Download and install Node JS from https://nodejs.org/en/download/.
+2. Navigate to https://github.com/Bluice81/TiguBot and download a copy of the code via preferred methodology. (ZIP is probably easiest if you do not have experience with git.)
+3. Unzip the code to a local directoy on the machine you are planning to run the bot from.
+4. Visit https://www.tigubot.com/ and purchase an API key from the home page.
+5. Follow all instructions listed during the purchase of the API.
+6. Once the API key has been received, visit https://www.tigubot.com/ and login using your API key and the pubkey of the wallet you insteand to use for the bot.
+7. Navigate to "Bot settings" to create a configuration json file for the bot. See "CONFIGURATION GRID BELOW" for instructions on specific settings.
+8. Copy the configuration using the COPY link, and paste into a new file called "orders.json".
+9. Save the "orders.json" file in the same installation directory as in step 3, inside the /src directory. (Same location as the "engine.ts" file.)
+10. Create a copy of of the "config_template.json" file and save the file as "config.json" file in the /src directory. (Same location as step 9 above.)
+11. Update the values in the settings "rpc" and "apiKey" fields in the newly created "config.json" file.
+12. Open a new terminal/command window and navigate to the root of the program folder which was unzipped in step 3 above.
+13. From the command prompt, run the command: npm install
+14. From the command prompt, run the command: npm start
+15. When prompted, enter your full wallet private key, this should be an 88 character key as exported from Phantom. If you are not exporting from Phantom and do not an 88 character key, please contact us for assistance.
+16. When prompted, enter a 34 character password which will encrypt your private key. This will be the password you enter to start the program going forward. If you lose this password, you can restore the fields in the "config.json" file to the same values as the "config_template.json" to start again from step 15.
+17. To start the bot, see the command syntax listed below.
 
 for the next launches
 1. Visit https://www.tigubot.com/
