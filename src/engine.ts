@@ -20,8 +20,8 @@ let numConsoleMessage = 0;
 let isTest = true;
 let writeLogFile = false;
 let logPathWindows = `${__dirname}\\log\\${new Date().toISOString().replaceAll(":", "_")}.log`;
-let logPathMac = `${__dirname}/log/${new Date().toISOString().replaceAll(":", "_")}.log`;
-let logPath =  process.platform == "win32" ? logPathWindows : logPathMac;
+let logPathOtherSO = `${__dirname}/log/${new Date().toISOString().replaceAll(":", "_")}.log`;
+let logPath =  process.platform == "win32" ? logPathWindows : logPathOtherSO;
 
 let nfts: any[] = [];
 
