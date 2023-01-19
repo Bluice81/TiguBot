@@ -7,7 +7,7 @@ import base58 = require('bs58');
 import ordersJson from "./orders.json";
 import config from "./config.json";
 
-let version = '2.1 19/01/2023';
+let version = '2.2 19/01/2023';
 
 let wallet: Keypair;
 
@@ -20,8 +20,8 @@ let numConsoleMessage = 0;
 let isTest = true;
 let writeLogFile = false;
 let logPathWindows = `${__dirname}\\log\\${new Date().toISOString().replaceAll(":", "_")}.log`;
-let logPathOtherSO = `${__dirname}/log/${new Date().toISOString().replaceAll(":", "_")}.log`;
-let logPath =  process.platform == "win32" ? logPathWindows : logPathOtherSO;
+let logPathOtherOS = `${__dirname}/log/${new Date().toISOString().replaceAll(":", "_")}.log`;
+let logPath =  process.platform == "win32" ? logPathWindows : logPathOtherOS;
 
 let nfts: any[] = [];
 
