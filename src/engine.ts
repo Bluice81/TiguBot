@@ -7,7 +7,7 @@ import base58 = require('bs58');
 import ordersJson from "./orders.json";
 import config from "./config.json";
 
-let version = '1.7 14/01/2023';
+let version = '2.0 19/01/2023';
 
 let wallet: Keypair;
 
@@ -147,13 +147,12 @@ async function init() {
     }
 
     orderJsonActive[x].index = index;
+    orderJsonActive[x].checkSellMarket = 0;
+    orderJsonActive[x].checkBuyMarket = 0;
     orderJsonActive[x].counter = 0;
     orderJsonActive[x].counterLocal = 0;
     orderJsonActive[x].tmpNewPriceSell = 0;
     orderJsonActive[x].tmpNewPriceBuy = 0;
-
-    orderJsonActive[x].startProcessSell = new Date();
-    orderJsonActive[x].startProcessBuy = new Date();
 
     orderJsonActive[x].pendingNewOrderCounterSell = [];
     orderJsonActive[x].pendingNewOrderCounterBuy = [];
@@ -227,18 +226,22 @@ async function getNfts() {
 
 function start() {
   for (var x = 0; x < orderJsonActive.length; x++) {
-    if (orderJsonActive[x].sellOrderQty > 0) {
-      processOrder(x, "sell", false);
-    }
-
-    if (orderJsonActive[x].buyOrderQty > 0) {
-      processOrder(x, "buy", false);
-    }
+    processOrder(x, "sell");
+    processOrder(x, "buy");
   }
+
+  setInterval(function () {
+    checkActiveMarkets();
+  }, 1000 * 60);
 }
 
-async function processOrder(x: number, orderType: string, noNextJob: boolean) {
+async function processOrder(x: number, orderType: string) {
   var order: any = orderJsonActive[x];
+
+  if ((orderType == "sell" && order.sellOrderQty <= 0) ||
+    (orderType == "buy" && order.buyOrderQty <= 0)) {
+    return
+  }
 
   try {
     if (orderType == "sell") {
@@ -246,14 +249,12 @@ async function processOrder(x: number, orderType: string, noNextJob: boolean) {
         return;
       }
 
-      order.startProcessSell = new Date();
       order.stateSell = 1; //running
     } else {
       if (order.stateBuy == 1) {
         return;
       }
 
-      order.startProcessBuy = new Date();
       order.stateBuy = 1; //running
     }
 
@@ -332,6 +333,10 @@ async function processOrder(x: number, orderType: string, noNextJob: boolean) {
         var orderNew = await processActionsResult(serverOrder, orderType, x);
 
         if (orderType == "sell") {
+          if (orderNew.actions.length > 0) {
+            order.checkSellMarketCounter = 8;
+          }
+
           if (!order.openOrdersSyncSell) {
             for (var j = 0; j < orderNew.openOrdersSell.length; j++) {
               updateOrderTx(order, "sell", "add", "sync", orderNew.openOrdersSell[j]);
@@ -340,6 +345,10 @@ async function processOrder(x: number, orderType: string, noNextJob: boolean) {
 
           order.openOrdersSyncSell = orderNew.openOrdersSyncSell;
         } else {
+          if (orderNew.actions.length > 0) {
+            order.checkBuyMarketCounter = 8;
+          }
+
           if (!order.openOrdersSyncBuy) {
             for (var j = 0; j < orderNew.openOrdersBuy.length; j++) {
               updateOrderTx(order, "buy", "add", "sync", orderNew.openOrdersBuy[j]);
@@ -366,25 +375,59 @@ async function nextJob(x: number, orderType: string) {
 
   if (orderType == "sell") {
     order.stateSell = 0; //idle
+    order.checkSellMarket = new Date().getTime();
+
+    if (order.checkSellMarketCounter > 0) {
+      myLog(`Check sell market[${order.index}][${order.counterLocal} - ${order.counter}] - for activities (${order.checkSellMarketCounter})`);
+      order.checkSellMarketCounter--;
+
+      setTimeout(function () {
+        processOrder(order.index, orderType);
+      }, 3000);
+    }
   } else {
     order.stateBuy = 0; //idle
+    order.checkBuyMarket = new Date().getTime();
+
+    if (order.checkBuyMarketCounter > 0) {
+      myLog(`Check buy market[${order.index}][${order.counterLocal} - ${order.counter}] - for activities (${order.checkBuyMarketCounter})`);
+      order.checkBuyMarketCounter--;
+
+      setTimeout(function () {
+        processOrder(order.index, orderType);
+      }, 3000);
+    }
   }
+}
 
-  var diffFromStartProcess = Math.abs(order.startProcessSell.getTime() - new Date().getTime());
-  var diffFromStartProcess = diffFromStartProcess < 0 ? 0 : diffFromStartProcess;
+function checkActiveMarkets() {
+  myLog("Check active markets");
 
-  var delay = Math.min(1000, diffFromStartProcess);
+  //every 60 seconds
+  for (let x = 0; x < orderJsonActive.length; x++) {
+    let order: any = orderJsonActive[x];
+    let diffLastCheckMarket = 0;
 
-  var diffLastActivity = (new Date().getTime() - (orderType == "sell" ? order.lastActivitySell : order.lastActivityBuy)) / 1000;
-  if (diffLastActivity > 20) {
-    delay = 10000;
+    if (order.sellOrderQty > 0) {
+      diffLastCheckMarket = (new Date().getTime() - order.checkSellMarket) / 1000;
+
+      if (diffLastCheckMarket >= order.keepFirstPositionForMinuteSell * 60) {
+        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell for KFPFM expired (${diffLastCheckMarket})`);
+
+        processOrder(x, "sell");
+      }
+    }
+
+    if (order.buyOrderQty > 0) {
+      diffLastCheckMarket = (new Date().getTime() - order.checkBuyMarket) / 1000;
+
+      if (diffLastCheckMarket >= order.keepFirstPositionForMinuteBuy * 60) {
+        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - buy for KFPFM expired (${diffLastCheckMarket})`);
+
+        processOrder(x, "buy");
+      }
+    }
   }
-
-  myLog(`[${order.index}]- ${orderType}-----> (delay (ms): ${delay})`);
-
-  setTimeout(function () {
-    processOrder(x, orderType, false);
-  }, delay);
 }
 
 async function processActionsResult(order: any, orderType: string, x: number) {
@@ -514,14 +557,24 @@ async function botEvent() {
 }
 
 async function eventHandler(eventType: GmEventType, order: Order, slotContext: number) {
+  var inMyMarket = orderJsonActive.filter(function (el) {
+    return el.itemMint == order.orderMint && (order.orderType == "sell" ? el.currencySell : el.currencyBuy) == order.currencyMint;
+  });
+
   switch (eventType) {
     case GmEventType.orderAdded:
-      if (order.owner == wallet.publicKey.toString()) {
+      if (inMyMarket.length == 1) {
         for (var x = 0; x < orderJsonActive.length; x++) {
           var el = orderJsonActive[x];
 
           if (el.itemMint == order.orderMint && (order.orderType == "sell" ? el.currencySell : el.currencyBuy) == order.currencyMint) {
-            updateOrderTx(orderJsonActive[x], order.orderType, "add", "EVT_ I add my new order", order.id);
+            if (order.owner == wallet.publicKey.toString()) {
+              updateOrderTx(orderJsonActive[x], order.orderType, "add", "EVT_ I add my new order", order.id);
+            } else {
+              myLog(`EVT_ check market[${el.index}][${el.counterLocal} - ${el.counter}] - ${order.orderType} for order added`);
+              processOrder(x, order.orderType);
+            }
+
             break;
           }
         }
@@ -543,17 +596,9 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
           }
         }
 
-        if (order.owner !== wallet.publicKey.toString() && el.itemMint == order.orderMint && ((el.sellOrderQty > 0 && order.orderType == "sell" && el.priceSell2P && el.priceSell2P > 0) || (el.buyOrderQty > 0 && order.orderType == "buy" && el.priceBuy2P && el.priceBuy2P > 0)) && (el.orderType == "sell" ? el.currencySell : el.currencyBuy) == order.currencyMint) {
-          var nftName = nfts.filter(function (el) {
-            return el.mint == order.orderMint;
-          });
-
-          if (nftName.length == 1) {
-            myLog(`EVT_ check market[${el.index}][${el.counterLocal} - ${el.counter}] for ${order.orderType} order modified / removed ${nftName[0].name} qty: ${order.orderQtyRemaining} * ${order.uiPrice} USDC`);
-            processOrder(x, order.orderType, true);
-          }
-
-          break;
+        if (el.itemMint == order.orderMint && (order.orderType == "sell" ? el.currencySell : el.currencyBuy) == order.currencyMint) {
+          myLog(`EVT_ check market[${el.index}][${el.counterLocal} - ${el.counter}] - ${order.orderType} for order modified / removed`);
+          processOrder(x, order.orderType);
         }
       }
 
