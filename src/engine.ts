@@ -7,7 +7,7 @@ import base58 = require('bs58');
 import ordersJson from "./orders.json";
 import config from "./config.json";
 
-let version = '2.0 19/01/2023';
+let version = '2.1 19/01/2023';
 
 let wallet: Keypair;
 
@@ -19,7 +19,9 @@ let numConsoleMessage = 0;
 
 let isTest = true;
 let writeLogFile = false;
-let logPath = `${__dirname}\\log\\${new Date().toISOString().replaceAll(":", "_")}.log`;
+let logPathWindows = `${__dirname}\\log\\${new Date().toISOString().replaceAll(":", "_")}.log`;
+let logPathMac = `${__dirname}/log/${new Date().toISOString().replaceAll(":", "_")}.log`;
+let logPath =  process.platform == "win32" ? logPathWindows : logPathMac;
 
 let nfts: any[] = [];
 
@@ -209,7 +211,7 @@ async function init() {
     return el.sellOrderQty > 0 || el.buyOrderQty > 0;
   });
 
-  myLog(`System start ${version} testMode: ${isTest} writeLogFile: ${writeLogFile} - active markets: ${orderJsonActive.length} - active orders: ${activeOrders} `);
+  myLog(`System start ${version} - ${process.platform} testMode: ${isTest} writeLogFile: ${writeLogFile} - active markets: ${orderJsonActive.length} - active orders: ${activeOrders} `);
 
   botEvent();
 
