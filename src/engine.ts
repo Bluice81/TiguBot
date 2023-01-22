@@ -7,7 +7,7 @@ import base58 = require('bs58');
 import ordersJson from "./orders.json";
 import config from "./config.json";
 
-let version = '2.2 19/01/2023';
+let version = '2.3 22/01/2023';
 
 let wallet: Keypair;
 
@@ -338,7 +338,7 @@ async function processOrder(x: number, orderType: string) {
 
           if (!order.openOrdersSyncSell) {
             for (var j = 0; j < orderNew.openOrdersSell.length; j++) {
-              updateOrderTx(order, "sell", "add", "sync", orderNew.openOrdersSell[j]);
+              updateOrderTx(x, "sell", "add", "sync", orderNew.openOrdersSell[j]);
             }
           }
 
@@ -350,7 +350,7 @@ async function processOrder(x: number, orderType: string) {
 
           if (!order.openOrdersSyncBuy) {
             for (var j = 0; j < orderNew.openOrdersBuy.length; j++) {
-              updateOrderTx(order, "buy", "add", "sync", orderNew.openOrdersBuy[j]);
+              updateOrderTx(x, "buy", "add", "sync", orderNew.openOrdersBuy[j]);
             }
           }
 
@@ -460,7 +460,7 @@ async function processActionsResult(order: any, orderType: string, x: number) {
               cancelTx = await cancelOrder(new PublicKey(orderId));
 
               if (cancelTx !== "") {
-                updateOrderTx(order, orderType, "remove", "Cancel order", openOrdersContainer[y]);
+                updateOrderTx(x, orderType, "remove", "Cancel order", openOrdersContainer[y]);
               }
             }
 
@@ -568,7 +568,7 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
 
           if (el.itemMint == order.orderMint && (order.orderType == "sell" ? el.currencySell : el.currencyBuy) == order.currencyMint) {
             if (order.owner == wallet.publicKey.toString()) {
-              updateOrderTx(orderJsonActive[x], order.orderType, "add", "EVT_ I add my new order", order.id);
+              updateOrderTx(x, order.orderType, "add", "EVT_ I add my new order", order.id);
             } else {
               myLog(`EVT_ check market[${el.index}][${el.counterLocal} - ${el.counter}] - ${order.orderType} for order added`);
               processOrder(x, order.orderType);
@@ -587,11 +587,11 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
 
         if (order.owner == wallet.publicKey.toString() && el.itemMint == order.orderMint && (order.orderType == "sell" ? el.currencySell : el.currencyBuy) == order.currencyMint) {
           if (eventType == GmEventType.orderModified && order.orderQtyRemaining == 0) {
-            updateOrderTx(orderJsonActive[x], order.orderType, "remove", "EVT_ Remove my order for fill", order.id);
+            updateOrderTx(x, order.orderType, "remove", "EVT_ Remove my order for fill", order.id);
           }
 
           if (eventType == GmEventType.orderRemoved) {
-            updateOrderTx(orderJsonActive[x], order.orderType, "remove", "EVT_ Remove my order due to cancellation", order.id);
+            updateOrderTx(x, order.orderType, "remove", "EVT_ Remove my order due to cancellation", order.id);
           }
         }
 
@@ -607,7 +607,9 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
   }
 }
 
-function updateOrderTx(order: any, orderType: string, action: string, source: string, orderId: string) {
+function updateOrderTx(x: number, orderType: string, action: string, source: string, orderId: string) {
+  var order: any = orderJsonActive[x];
+
   var container = orderType == "sell" ? order.openOrdersSell : order.openOrdersBuy;
   var containerPending = orderType == "sell" ? order.pendingNewOrderCounterSell : order.pendingNewOrderCounterBuy;
 
