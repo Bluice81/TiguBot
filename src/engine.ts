@@ -265,9 +265,6 @@ async function processOrder(x: number, orderType: string) {
 
     myLog(`[${order.index}][${order.counterLocal} - xxx] - ${orderType} Checking order ${order.name} `);
 
-    //Call api web services
-    //order.orderType = orderType;
-
     var result: any;
     try {
       result = await callBackendApi({ method: "getActions", wallet: wallet.publicKey.toString(), apiKey: config.apiKey, order: order, orderType: orderType });

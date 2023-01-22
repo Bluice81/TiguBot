@@ -52,7 +52,7 @@ Instructions for the first launch of TiguBot:
 13. From the command prompt, run the command: npm install
 14. From the command prompt, run the command: npm start
 15. When prompted, enter your full wallet private key, this should be an 88 character key as exported from Phantom. 
-16. When prompted, enter a 34 character password which will encrypt your private key. This will be the password you enter to start the program going forward. If you lose this password, you can restore the fields in the "config.json" file to the same values as the "config_template.json" to start again from step 15.
+16. When prompted, enter a 32 character password which will encrypt your private key. This will be the password you enter to start the program going forward. If you lose this password, you can restore the fields in the "config.json" file to the same values as the "config_template.json" to start again from step 15.
 17. To start the bot, see the command syntax listed below.
 
 Instructions for all subsequent launches and edits to the orders.json file:
