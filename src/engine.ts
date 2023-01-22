@@ -7,7 +7,7 @@ import base58 = require('bs58');
 import ordersJson from "./orders.json";
 import config from "./config.json";
 
-let version = '2.32 22/01/2023';
+let version = '2.33 22/01/2023';
 
 let wallet: Keypair;
 
@@ -21,7 +21,7 @@ let isTest = true;
 let writeLogFile = false;
 let logPathWindows = `${__dirname}\\log\\${new Date().toISOString().replaceAll(":", "_")}.log`;
 let logPathOtherOS = `${__dirname}/log/${new Date().toISOString().replaceAll(":", "_")}.log`;
-let logPath =  process.platform == "win32" ? logPathWindows : logPathOtherOS;
+let logPath = process.platform == "win32" ? logPathWindows : logPathOtherOS;
 
 let nfts: any[] = [];
 
@@ -334,33 +334,33 @@ async function processOrder(x: number, orderType: string) {
 
         order.counter = serverOrder.counter;
 
-        var orderNew = await processActionsResult(serverOrder, orderType, x);
-
         if (orderType == "sell") {
-          if (orderNew.actions.length > 0) {
+          if (serverOrder.actions.length > 0) {
             order.checkSellMarketCounter = 8;
           }
 
           if (!order.openOrdersSyncSell) {
-            for (var j = 0; j < orderNew.openOrdersSell.length; j++) {
-              updateOrderTx(x, "sell", "add", "sync", orderNew.openOrdersSell[j]);
+            for (var j = 0; j < serverOrder.openOrdersSell.length; j++) {
+              updateOrderTx(x, "sell", "add", "sync", serverOrder.openOrdersSell[j]);
             }
           }
 
-          order.openOrdersSyncSell = orderNew.openOrdersSyncSell;
+          order.openOrdersSyncSell = serverOrder.openOrdersSyncSell;
         } else {
-          if (orderNew.actions.length > 0) {
+          if (serverOrder.actions.length > 0) {
             order.checkBuyMarketCounter = 8;
           }
 
           if (!order.openOrdersSyncBuy) {
-            for (var j = 0; j < orderNew.openOrdersBuy.length; j++) {
-              updateOrderTx(x, "buy", "add", "sync", orderNew.openOrdersBuy[j]);
+            for (var j = 0; j < serverOrder.openOrdersBuy.length; j++) {
+              updateOrderTx(x, "buy", "add", "sync", serverOrder.openOrdersBuy[j]);
             }
           }
 
-          order.openOrdersSyncBuy = orderNew.openOrdersSyncBuy;
+          order.openOrdersSyncBuy = serverOrder.openOrdersSyncBuy;
         }
+
+        await processActionsResult(serverOrder, orderType, x);
 
         nextJob(x, orderType);
 
