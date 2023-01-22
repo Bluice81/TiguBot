@@ -7,7 +7,7 @@ import base58 = require('bs58');
 import ordersJson from "./orders.json";
 import config from "./config.json";
 
-let version = '2.3 22/01/2023';
+let version = '2.31 22/01/2023';
 
 let wallet: Keypair;
 
@@ -329,6 +329,8 @@ async function processOrder(x: number, orderType: string) {
           break;
         }
 
+        order.counter = serverOrder.counter;
+        
         var orderNew = await processActionsResult(serverOrder, orderType, x);
 
         if (orderType == "sell") {
@@ -336,25 +338,25 @@ async function processOrder(x: number, orderType: string) {
             order.checkSellMarketCounter = 8;
           }
 
-          if (!order.openOrdersSyncSell) {
-            for (var j = 0; j < orderNew.openOrdersSell.length; j++) {
-              updateOrderTx(x, "sell", "add", "sync", orderNew.openOrdersSell[j]);
-            }
-          }
+          // if (!order.openOrdersSyncSell) {
+          //   for (var j = 0; j < orderNew.openOrdersSell.length; j++) {
+          //     updateOrderTx(x, "sell", "add", "sync", orderNew.openOrdersSell[j]);
+          //   }
+          // }
 
-          order.openOrdersSyncSell = orderNew.openOrdersSyncSell;
+          // order.openOrdersSyncSell = orderNew.openOrdersSyncSell;
         } else {
           if (orderNew.actions.length > 0) {
             order.checkBuyMarketCounter = 8;
           }
 
-          if (!order.openOrdersSyncBuy) {
-            for (var j = 0; j < orderNew.openOrdersBuy.length; j++) {
-              updateOrderTx(x, "buy", "add", "sync", orderNew.openOrdersBuy[j]);
-            }
-          }
+          // if (!order.openOrdersSyncBuy) {
+          //   for (var j = 0; j < orderNew.openOrdersBuy.length; j++) {
+          //     updateOrderTx(x, "buy", "add", "sync", orderNew.openOrdersBuy[j]);
+          //   }
+          // }
 
-          order.openOrdersSyncBuy = orderNew.openOrdersSyncBuy;
+          // order.openOrdersSyncBuy = orderNew.openOrdersSyncBuy;
         }
 
         nextJob(x, orderType);
