@@ -4,12 +4,13 @@ import { encrypt, decrypt } from './crypto';
 import readline from 'readline';
 import fetch from "isomorphic-fetch";
 import base58 = require('bs58');
-import ordersJson from "./orders.json";
 import config from "./config.json";
+import fs from 'fs';
 
-let version = '2.33 22/01/2023';
+let version = '2.34 07/02/2023';
 
 let wallet: Keypair;
+let ordersJson: any = JSON.parse(fs.readFileSync("./src/orders.json").toString());
 
 let connection = new Connection(config.rpc, "confirmed");
 let programId = new PublicKey("traderDnaR5w6Tcoi3NFm53i48FTDNbGjBSZwWXDRrg");
@@ -31,6 +32,36 @@ let ATLAS = 'ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx';
 let orderJsonActive: any[];
 
 let counter = 0;
+let lastOrdersJson = "";
+
+fs.watch("./src/orders.json", (eventType, filename) => {
+  if (eventType === 'change') {
+    try {
+      var rawData = fs.readFileSync("./src/orders.json").toString();
+
+      if (rawData !== "" && rawData !== lastOrdersJson) {
+        lastOrdersJson = rawData;
+
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        });
+
+        rl.question('File orders has been changed! Do you want to apply the changes (y for confirm)?\n', function (response) {
+          if (response == "y") {
+            ordersJson = JSON.parse(rawData);
+
+            myLog(`Orders file updated. Markets: ${ordersJson.length}`);
+
+            rl.close();
+          }
+        });
+      }
+    } catch (e: any) {
+      myLog(e.toString());
+    }
+  }
+});
 
 function myLog(
   data: String,
