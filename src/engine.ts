@@ -40,8 +40,6 @@ fs.watch("./src/orders.json", (eventType, filename) => {
       var rawData = fs.readFileSync("./src/orders.json").toString();
 
       if (rawData !== "" && rawData !== lastOrdersJson) {
-        lastOrdersJson = rawData;
-
         const rl = readline.createInterface({
           input: process.stdin,
           output: process.stdout
@@ -50,7 +48,8 @@ fs.watch("./src/orders.json", (eventType, filename) => {
         rl.question('File orders has been changed! Do you want to apply the changes (y for confirm)?\n', function (response) {
           if (response == "y") {
             ordersJson = JSON.parse(rawData);
-
+            lastOrdersJson = rawData;
+            
             myLog(`Orders file updated. Markets: ${ordersJson.length}`);
 
             rl.close();
