@@ -49,12 +49,14 @@ fs.watch("./src/orders.json", (eventType, filename) => {
           input: process.stdin,
           output: process.stdout
         });
-   
+
         rl.question('File orders has been changed! Do you want to apply the changes (y for confirm)?\n', function (response) {
           if (response == "y") {
             suspendLog = false;
-            
+
             ordersJson = JSON.parse(rawData);
+
+            prepareOrders(true);
 
             myLog(`Orders file updated. Markets: ${ordersJson.length}`);
           }
@@ -80,7 +82,7 @@ function myLog(
 
   let message = `${new Date().toLocaleString()}, ${(important ? '>>>>>>' : '')} ${data} ${(important ? '<<<<<<' : '')}`;
 
-  if (!suspendLog){
+  if (!suspendLog) {
     console.log(message);
   }
 
@@ -139,6 +141,16 @@ async function init() {
 
   nfts = await getNfts();
 
+  prepareOrders(false);
+
+  myLog(`System start ${version} - ${process.platform} testMode: ${isTest} writeLogFile: ${writeLogFile}`);
+
+  botEvent();
+
+  start();
+}
+
+async function prepareOrders(forceKFPFM: boolean) {
   orderJsonActive = ordersJson.filter(function (el: any) {
     return el.buyOrderQty > 0 || el.sellOrderQty > 0;
   });
@@ -200,8 +212,16 @@ async function init() {
     orderJsonActive[x].openOrdersSell = [];
     orderJsonActive[x].openOrdersBuy = [];
 
-    orderJsonActive[x].lastActivitySell = new Date().getTime();
-    orderJsonActive[x].lastActivityBuy = new Date().getTime();
+    if (forceKFPFM) {
+      var yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      orderJsonActive[x].lastActivitySell = yesterday;
+      orderJsonActive[x].lastActivityBuy = yesterday;
+    } else {
+      orderJsonActive[x].lastActivitySell = new Date().getTime();
+      orderJsonActive[x].lastActivityBuy = new Date().getTime();
+    }
 
     orderJsonActive[x].stateSell = 0;
     orderJsonActive[x].stateBuy = 0;
@@ -250,11 +270,11 @@ async function init() {
     return el.sellOrderQty > 0 || el.buyOrderQty > 0;
   });
 
-  myLog(`System start ${version} - ${process.platform} testMode: ${isTest} writeLogFile: ${writeLogFile} - active markets: ${orderJsonActive.length} - active orders: ${activeOrders} `);
+  myLog(`Active markets: ${orderJsonActive.length} - active orders: ${activeOrders}`);
 
-  botEvent();
-
-  await start();
+  if (forceKFPFM){
+    checkActiveMarkets();
+  }
 }
 
 async function getNfts() {
