@@ -33,6 +33,8 @@ let orderJsonActive: any[];
 
 let counter = 0;
 let lastOrdersJson = "";
+let suspendLog = false;
+
 
 fs.watch("./src/orders.json", (eventType, filename) => {
   if (eventType === 'change') {
@@ -40,20 +42,24 @@ fs.watch("./src/orders.json", (eventType, filename) => {
       var rawData = fs.readFileSync("./src/orders.json").toString();
 
       if (rawData !== "" && rawData !== lastOrdersJson) {
+        lastOrdersJson = rawData;
+        suspendLog = true;
+
         const rl = readline.createInterface({
           input: process.stdin,
           output: process.stdout
         });
-
+   
         rl.question('File orders has been changed! Do you want to apply the changes (y for confirm)?\n', function (response) {
           if (response == "y") {
-            ordersJson = JSON.parse(rawData);
-            lastOrdersJson = rawData;
+            suspendLog = false;
             
-            myLog(`Orders file updated. Markets: ${ordersJson.length}`);
+            ordersJson = JSON.parse(rawData);
 
-            rl.close();
+            myLog(`Orders file updated. Markets: ${ordersJson.length}`);
           }
+
+          rl.close();
         });
       }
     } catch (e: any) {
@@ -73,7 +79,10 @@ function myLog(
   }
 
   let message = `${new Date().toLocaleString()}, ${(important ? '>>>>>>' : '')} ${data} ${(important ? '<<<<<<' : '')}`;
-  console.log(message);
+
+  if (!suspendLog){
+    console.log(message);
+  }
 
   if (writeLogFile) {
     try {
