@@ -7,7 +7,7 @@ import base58 = require('bs58');
 import config from "./config.json";
 import fs from 'fs';
 
-let version = '2.34 07/02/2023';
+let version = '2.4 09/02/2023';
 
 let wallet: Keypair;
 let ordersJson: any = JSON.parse(fs.readFileSync("./src/orders.json").toString());
