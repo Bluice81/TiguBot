@@ -141,7 +141,7 @@ async function init() {
 
   nfts = await getNfts();
 
-  prepareOrders(false);
+  await prepareOrders(false);
 
   myLog(`System start ${version} - ${process.platform} testMode: ${isTest} writeLogFile: ${writeLogFile}`);
 
