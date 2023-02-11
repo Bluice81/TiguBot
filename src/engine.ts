@@ -272,7 +272,7 @@ async function prepareOrders(forceKFPFM: boolean) {
 
   myLog(`Active markets: ${orderJsonActive.length} - active orders: ${activeOrders}`);
 
-  if (forceKFPFM){
+  if (forceKFPFM) {
     checkActiveMarkets();
   }
 }
@@ -474,7 +474,7 @@ function checkActiveMarkets() {
     if (order.sellOrderQty > 0) {
       diffLastCheckMarket = (new Date().getTime() - order.checkSellMarket) / 1000;
 
-      if (diffLastCheckMarket >= (order.keepFirstPositionForMinuteSell - 1) * 60) {
+      if (diffLastCheckMarket >= (Math.min(5, order.keepFirstPositionForMinuteSell) - 1) * 60) {
         myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell for KFPFM expired (${diffLastCheckMarket})`);
 
         processOrder(x, "sell");
@@ -484,7 +484,7 @@ function checkActiveMarkets() {
     if (order.buyOrderQty > 0) {
       diffLastCheckMarket = (new Date().getTime() - order.checkBuyMarket) / 1000;
 
-      if (diffLastCheckMarket >= (order.keepFirstPositionForMinuteBuy - 1) * 60) {
+      if (diffLastCheckMarket >= (Math.min(5, order.keepFirstPositionForMinuteBuy) - 1) * 60) {
         myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - buy for KFPFM expired (${diffLastCheckMarket})`);
 
         processOrder(x, "buy");
