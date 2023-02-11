@@ -1,4 +1,4 @@
-# TiguBot (v. 2.33 22/01/2023)
+# TiguBot (v. 2.4 09/02/2023)
 
 Automated trading software for the Galactic Marketplace of Star Atlas (https://play.staratlas.com/market).
 
@@ -110,7 +110,8 @@ The orders can be filtered through the combobox: 1) Active orders: those active 
 At the command prompt, enter the following commands:
 npm start {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
 Example:<br />
-npm start ---> operating mode (orders will be placed).<br />
+npm start ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them.<br />
 npm start 1 ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them.<br />
 npm start 1 1 ---> for test mode and saving a log file.<br />
+npm start 0 ---> operating mode (orders will be placed).<br />
 npm start 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />

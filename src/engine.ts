@@ -4,12 +4,13 @@ import { encrypt, decrypt } from './crypto';
 import readline from 'readline';
 import fetch from "isomorphic-fetch";
 import base58 = require('bs58');
-import ordersJson from "./orders.json";
 import config from "./config.json";
+import fs from 'fs';
 
-let version = '2.33 22/01/2023';
+let version = '2.4 09/02/2023';
 
 let wallet: Keypair;
+let ordersJson: any = JSON.parse(fs.readFileSync("./src/orders.json").toString());
 
 let connection = new Connection(config.rpc, "confirmed");
 let programId = new PublicKey("traderDnaR5w6Tcoi3NFm53i48FTDNbGjBSZwWXDRrg");
@@ -31,6 +32,43 @@ let ATLAS = 'ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx';
 let orderJsonActive: any[];
 
 let counter = 0;
+let lastOrdersJson = "";
+let suspendLog = false;
+
+
+fs.watch("./src/orders.json", (eventType, filename) => {
+  if (eventType === 'change') {
+    try {
+      var rawData = fs.readFileSync("./src/orders.json").toString();
+
+      if (rawData !== "" && rawData !== lastOrdersJson) {
+        lastOrdersJson = rawData;
+        suspendLog = true;
+
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        });
+
+        rl.question('File orders has been changed! Do you want to apply the changes (y for confirm)?\n', function (response) {
+          if (response == "y") {
+            suspendLog = false;
+
+            ordersJson = JSON.parse(rawData);
+
+            prepareOrders(true);
+
+            myLog(`Orders file updated. Markets: ${ordersJson.length}`);
+          }
+
+          rl.close();
+        });
+      }
+    } catch (e: any) {
+      myLog(e.toString());
+    }
+  }
+});
 
 function myLog(
   data: String,
@@ -43,7 +81,10 @@ function myLog(
   }
 
   let message = `${new Date().toLocaleString()}, ${(important ? '>>>>>>' : '')} ${data} ${(important ? '<<<<<<' : '')}`;
-  console.log(message);
+
+  if (!suspendLog) {
+    console.log(message);
+  }
 
   if (writeLogFile) {
     try {
@@ -100,6 +141,16 @@ async function init() {
 
   nfts = await getNfts();
 
+  await prepareOrders(false);
+
+  myLog(`System start ${version} - ${process.platform} testMode: ${isTest} writeLogFile: ${writeLogFile}`);
+
+  botEvent();
+
+  start();
+}
+
+async function prepareOrders(forceKFPFM: boolean) {
   orderJsonActive = ordersJson.filter(function (el: any) {
     return el.buyOrderQty > 0 || el.sellOrderQty > 0;
   });
@@ -161,8 +212,16 @@ async function init() {
     orderJsonActive[x].openOrdersSell = [];
     orderJsonActive[x].openOrdersBuy = [];
 
-    orderJsonActive[x].lastActivitySell = new Date().getTime();
-    orderJsonActive[x].lastActivityBuy = new Date().getTime();
+    if (forceKFPFM) {
+      var yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      orderJsonActive[x].lastActivitySell = yesterday;
+      orderJsonActive[x].lastActivityBuy = yesterday;
+    } else {
+      orderJsonActive[x].lastActivitySell = new Date().getTime();
+      orderJsonActive[x].lastActivityBuy = new Date().getTime();
+    }
 
     orderJsonActive[x].stateSell = 0;
     orderJsonActive[x].stateBuy = 0;
@@ -211,11 +270,11 @@ async function init() {
     return el.sellOrderQty > 0 || el.buyOrderQty > 0;
   });
 
-  myLog(`System start ${version} - ${process.platform} testMode: ${isTest} writeLogFile: ${writeLogFile} - active markets: ${orderJsonActive.length} - active orders: ${activeOrders} `);
+  myLog(`Active markets: ${orderJsonActive.length} - active orders: ${activeOrders}`);
 
-  botEvent();
-
-  await start();
+  if (forceKFPFM) {
+    checkActiveMarkets();
+  }
 }
 
 async function getNfts() {
@@ -415,7 +474,7 @@ function checkActiveMarkets() {
     if (order.sellOrderQty > 0) {
       diffLastCheckMarket = (new Date().getTime() - order.checkSellMarket) / 1000;
 
-      if (diffLastCheckMarket >= (order.keepFirstPositionForMinuteSell - 1) * 60) {
+      if (diffLastCheckMarket >= (Math.min(5, order.keepFirstPositionForMinuteSell) - 1) * 60) {
         myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell for KFPFM expired (${diffLastCheckMarket})`);
 
         processOrder(x, "sell");
@@ -425,7 +484,7 @@ function checkActiveMarkets() {
     if (order.buyOrderQty > 0) {
       diffLastCheckMarket = (new Date().getTime() - order.checkBuyMarket) / 1000;
 
-      if (diffLastCheckMarket >= (order.keepFirstPositionForMinuteBuy - 1) * 60) {
+      if (diffLastCheckMarket >= (Math.min(5, order.keepFirstPositionForMinuteBuy) - 1) * 60) {
         myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - buy for KFPFM expired (${diffLastCheckMarket})`);
 
         processOrder(x, "buy");
