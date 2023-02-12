@@ -7,7 +7,7 @@ import base58 = require('bs58');
 import config from "./config.json";
 import fs from 'fs';
 
-let version = '2.41 12/02/2023';
+let version = '2.42 12/02/2023';
 
 let wallet: Keypair;
 let ordersJson: any = JSON.parse(fs.readFileSync("./src/orders.json").toString());
@@ -301,7 +301,13 @@ async function processOrder(x: number, orderType: string) {
 
   if ((orderType == "sell" && order.sellOrderQty <= 0) ||
     (orderType == "buy" && order.buyOrderQty <= 0)) {
-    return
+    if (orderType == "sell") {
+      order.stateSell = 0;
+    } else {
+      order.stateBuy = 0;
+    }
+
+    return;
   }
 
   try {
@@ -386,8 +392,9 @@ async function processOrder(x: number, orderType: string) {
 
         if (!checkOrderType || !checkItemMint || !checkCurrency || !checkSellPrice || !checkBuyPrice) {
           myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Service Error: wrong data. checkOrderType: ${checkOrderType} checkItemMint: ${checkItemMint} checkCurrency: ${checkCurrency} checkSellPrice: ${checkSellPrice} checkBuyPrice: ${checkBuyPrice}`);
-          console.log(serverOrder.orderType + ";" + ";" + orderType);
-          console.log(serverOrder);
+          myLog(serverOrder.orderType + ";" + ";" + orderType);
+          myLog(serverOrder);
+          nextJob(x, orderType);
           break;
         }
 
