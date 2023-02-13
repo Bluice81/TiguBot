@@ -7,7 +7,7 @@ import base58 = require('bs58');
 import config from "./config.json";
 import fs from 'fs';
 
-let version = '2.43 13/02/2023';
+let version = '2.44 13/02/2023';
 
 let wallet: Keypair;
 let ordersJson: any = JSON.parse(fs.readFileSync("./src/orders.json").toString());
@@ -54,14 +54,7 @@ fs.watch("./src/orders.json", (eventType, filename) => {
           suspendLog = false;
 
           if (response == "y") {
-            process.on("exit", function () {
-              require("child_process").spawn("npm.cmd", ["start", "0", "1", pwdWallet], {
-                cwd: process.cwd(),
-                detached: true,
-                stdio: "inherit"
-              });
-            });
-            process.exit();
+            startNewProcess();
           } else {
             myLog(`The file has not been updated!`);
           }
@@ -74,6 +67,31 @@ fs.watch("./src/orders.json", (eventType, filename) => {
     }
   }
 });
+
+function startNewProcess() {
+  process.on("exit", function () {
+    var cmd = "";
+
+    if (process.platform == "win32") {
+      cmd = "npm.cmd";
+    } else {
+      cmd = "npm";
+    }
+
+    var parameters = process.argv.slice(2);
+    parameters.unshift("start");
+    parameters.push(pwdWallet);
+
+    myLog(JSON.stringify(parameters));
+
+    require("child_process").spawn(cmd, parameters, {
+      cwd: process.cwd(),
+      detached: true,
+      stdio: "inherit"
+    });
+  });
+  process.exit();
+}
 
 function myLog(
   data: String,
