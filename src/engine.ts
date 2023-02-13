@@ -8,7 +8,7 @@ import config from "./config.json";
 import ordersJson from "./orders.json";
 import fs from 'fs';
 
-let version = '2.45 13/02/2023';
+let version = '2.46 13/02/2023';
 
 let wallet: Keypair;
 
@@ -43,7 +43,7 @@ fs.watch("./src/orders.json", (eventType, filename) => {
 
       if (rawData !== "" && rawData !== lastOrdersJson) {
         lastOrdersJson = rawData;
-        suspendLog = false;
+        suspendLog = true;
 
         const rl = readline.createInterface({
           input: process.stdin,
