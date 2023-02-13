@@ -8,7 +8,7 @@ import config from "./config.json";
 import ordersJson from "./orders.json";
 import fs from 'fs';
 
-let version = '2.5 13/02/2023';
+let version = '2.6 13/02/2023';
 
 let wallet: Keypair;
 
@@ -474,9 +474,10 @@ async function processOrder(x: number, orderType: string) {
           order.stateBuy = 0;
         }
 
-        if (serverOrder.wrongData != undefined && serverOrder.wrongData) {
+        if ((order.error != undefined && order.error) ||
+          (serverOrder.wrongData != undefined && serverOrder.wrongData)) {
           setTimeout(function () {
-            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Out of sync.`);
+            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Out of sync or some errors.`);
             processOrder(x, orderType);
           }, 1000);
         }
@@ -516,30 +517,29 @@ function checkActiveMarkets() {
   for (let x = 0; x < orderJsonActive.length; x++) {
     let order: any = orderJsonActive[x];
     let diffLastCheckMarket = 0;
+    let maxTimeout = 2;
 
     if (order.sellOrderQty > 0) {
       diffLastCheckMarket = (new Date().getTime() - order.checkSellMarket) / 1000 / 60;
-      var minKFPFM = Math.min(2, order.keepFirstPositionForMinuteSell);
 
-      if (diffLastCheckMarket >= minKFPFM - 1) {
-        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell for KFPFM expired (${diffLastCheckMarket.toFixed(2)})`);
+      if (diffLastCheckMarket >= maxTimeout - 1) {
+        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell timeout (${diffLastCheckMarket.toFixed(2)}/${maxTimeout})`);
 
         processOrder(x, "sell");
       } else {
-        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell I await KFPFM expiration (${diffLastCheckMarket.toFixed(2)}/${minKFPFM})`);
+        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell I await expiration (${diffLastCheckMarket.toFixed(2)}/${maxTimeout})`);
       }
     }
 
     if (order.buyOrderQty > 0) {
       diffLastCheckMarket = (new Date().getTime() - order.checkBuyMarket) / 1000 / 60;
-      var minKFPFM = Math.min(2, order.keepFirstPositionForMinuteBuy);
 
-      if (diffLastCheckMarket >= minKFPFM - 1) {
-        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - buy for KFPFM expired (${diffLastCheckMarket.toFixed(2)})`);
+      if (diffLastCheckMarket >= maxTimeout - 1) {
+        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - timeout (${diffLastCheckMarket.toFixed(2)}/${maxTimeout})`);
 
         processOrder(x, "buy");
       } else {
-        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - buy I await KFPFM expiration (${diffLastCheckMarket.toFixed(2)}/${minKFPFM})`);
+        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - buy I await expiration (${diffLastCheckMarket.toFixed(2)}/${maxTimeout})`);
       }
     }
   }
@@ -548,6 +548,7 @@ function checkActiveMarkets() {
 async function processActionsResult(order: any, orderType: string, x: number) {
   try {
     var orderLocal: any = orderJsonActive[x];
+    orderLocal.error = false;
 
     myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Checking result orders for: ${order.name} `);
 
@@ -621,6 +622,7 @@ async function processActionsResult(order: any, orderType: string, x: number) {
             }
             catch (e) {
               myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Error placing order ${e} `);
+              orderLocal.error = true;
 
               if (orderType == "sell") {
                 orderLocal.tmpNewPriceSell = order.actions[z].newPrice;
