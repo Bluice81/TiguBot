@@ -5,12 +5,12 @@ import readline from 'readline';
 import fetch from "isomorphic-fetch";
 import base58 = require('bs58');
 import config from "./config.json";
+import ordersJson from "./orders.json";
 import fs from 'fs';
 
-let version = '2.44 13/02/2023';
+let version = '2.45 13/02/2023';
 
 let wallet: Keypair;
-let ordersJson: any = JSON.parse(fs.readFileSync("./src/orders.json").toString());
 
 let connection = new Connection(config.rpc, "confirmed");
 let programId = new PublicKey("traderDnaR5w6Tcoi3NFm53i48FTDNbGjBSZwWXDRrg");
@@ -165,6 +165,8 @@ const initWallet = async () => {
 }
 
 async function init() {
+  console.clear();
+
   var param = process.argv.slice(2);
 
   isTest = param.length < 1 || process.argv.slice(2)[0] == "1";
@@ -841,5 +843,4 @@ async function cancelOrder(orderId: PublicKey) {
   return txid;
 }
 
-console.clear();
 initWallet();
