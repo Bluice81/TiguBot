@@ -8,7 +8,7 @@ import config from "./config.json";
 import ordersJson from "./orders.json";
 import fs from 'fs';
 
-let version = '2.62 13/02/2023';
+let version = '2.7 14/02/2023';
 
 let wallet: Keypair;
 
@@ -337,13 +337,13 @@ async function processOrder(x: number, orderType: string) {
 
     if (orderType == "sell") {
       if (order.stateSell == 1) {
-        // return;
+        return;
       }
 
       order.stateSell = 1; //running
     } else {
       if (order.stateBuy == 1) {
-        // return;
+        return;
       }
 
       order.stateBuy = 1; //running
@@ -717,11 +717,11 @@ async function eventHandler(eventType: GmEventType, order: Order, slotContext: n
 
         if (el.itemMint == order.orderMint && (order.orderType == "sell" ? el.currencySell : el.currencyBuy) == order.currencyMint) {
           myLog(`EVT_ check market[${el.index}] for order modified / removed`);
+          let xx = x;
+          let yy = order.orderType;
           setTimeout(function () {
-            processOrder(x, order.orderType);
+            processOrder(xx, yy);
           }, 3000);
-
-          break;
         }
       }
 
