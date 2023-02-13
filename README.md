@@ -92,7 +92,7 @@ Limit price (Buy): This is the maximum purchase price an asset will be purchased
 
 Important: The bot will try to occupy the first position of the list of sales or purchase orders. If it fails, due to the limited price, then it will try to occupy the following positions: 2, 3....
 
-Step raise: Indicates the percentage of decrease (sell) or increase (buy) expressed in values from 0 to 1, where 0.02 = 2%. Since we will be competing with other bids, using an appropriate percentage avoids canceling/placing the order too many times. 1% (0.01) is a good starting point but the optimal value may vary according to the market.
+Step raise: Indicates the value of decrease (sell) or increase (buy) expressed in values from 0.01 to infinity, where 0.01 = 0.01 USDC or 0.01 ATLAS. Since we will be competing with other bids, using an appropriate value avoids canceling/placing the order too many times. The optimal value may vary according to the market.
 
 KFPFM: Keep First Position For Minutes - If the system manages to occupy the first position and the gap with the 2nd exceeds the step raise the bot will reposition itself on the 2nd position + step raise. This behavior can creates an infinite loop with other bids if those other bids are continously cancelled. With this parameter you can decide the pause time, in minutes, with which to hold the top position. With KFPFM = 5, if the bot manages to occupy the first position, it will hold the top position for 5 minutes. Once the time has expired, the system will evaluate whether to reposition it. Users can also take advantage of this system by creating fake bids to increase your buy/sell price. In these situations, it is best to have the KFPFM set at a low value.
 
