@@ -7,7 +7,7 @@ import base58 = require('bs58');
 import config from "./config.json";
 import fs from 'fs';
 
-let version = '2.42 12/02/2023';
+let version = '2.43 13/02/2023';
 
 let wallet: Keypair;
 let ordersJson: any = JSON.parse(fs.readFileSync("./src/orders.json").toString());
@@ -34,7 +34,7 @@ let orderJsonActive: any[];
 let counter = 0;
 let lastOrdersJson = "";
 let suspendLog = false;
-
+let pwdWallet = "";
 
 fs.watch("./src/orders.json", (eventType, filename) => {
   if (eventType === 'change') {
@@ -43,7 +43,7 @@ fs.watch("./src/orders.json", (eventType, filename) => {
 
       if (rawData !== "" && rawData !== lastOrdersJson) {
         lastOrdersJson = rawData;
-        suspendLog = true;
+        suspendLog = false;
 
         const rl = readline.createInterface({
           input: process.stdin,
@@ -51,14 +51,19 @@ fs.watch("./src/orders.json", (eventType, filename) => {
         });
 
         rl.question('File orders has been changed! Do you want to apply the changes (y for confirm)?\n', function (response) {
+          suspendLog = false;
+
           if (response == "y") {
-            suspendLog = false;
-
-            ordersJson = JSON.parse(rawData);
-
-            prepareOrders(true);
-
-            myLog(`Orders file updated. Markets: ${ordersJson.length}`);
+            process.on("exit", function () {
+              require("child_process").spawn("npm.cmd", ["start", "0", "1", pwdWallet], {
+                cwd: process.cwd(),
+                detached: true,
+                stdio: "inherit"
+              });
+            });
+            process.exit();
+          } else {
+            myLog(`The file has not been updated!`);
           }
 
           rl.close();
@@ -122,15 +127,23 @@ const initWallet = async () => {
     });
 
   } else {
-    rl.question('What is your password (32 characters)?\n ', function (secretKey) {
-      wallet = Keypair.fromSecretKey(base58.decode(decrypt(config.privateKey, secretKey)));
+    var param = process.argv.slice(2);
+    if (param.length > 2) {
+      pwdWallet = process.argv.slice(4)[0];
 
-      rl.close();
-
+      wallet = Keypair.fromSecretKey(base58.decode(decrypt(config.privateKey, pwdWallet)));
       init();
-    });
-  }
+    } else {
+      rl.question('What is your password (32 characters)?\n ', function (response) {
+        pwdWallet = response;
+        wallet = Keypair.fromSecretKey(base58.decode(decrypt(config.privateKey, pwdWallet)));
 
+        rl.close();
+
+        init();
+      });
+    }
+  }
 }
 
 async function init() {
@@ -141,7 +154,7 @@ async function init() {
 
   nfts = await getNfts();
 
-  await prepareOrders(false);
+  await prepareOrders();
 
   myLog(`System start ${version} - ${process.platform} testMode: ${isTest} writeLogFile: ${writeLogFile}`);
 
@@ -150,7 +163,7 @@ async function init() {
   start();
 }
 
-async function prepareOrders(forceKFPFM: boolean) {
+async function prepareOrders() {
   orderJsonActive = ordersJson.filter(function (el: any) {
     return el.buyOrderQty > 0 || el.sellOrderQty > 0;
   });
@@ -212,16 +225,8 @@ async function prepareOrders(forceKFPFM: boolean) {
     orderJsonActive[x].openOrdersSell = [];
     orderJsonActive[x].openOrdersBuy = [];
 
-    if (forceKFPFM) {
-      var yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      orderJsonActive[x].lastActivitySell = yesterday.getTime();
-      orderJsonActive[x].lastActivityBuy = yesterday.getTime();
-    } else {
-      orderJsonActive[x].lastActivitySell = new Date().getTime();
-      orderJsonActive[x].lastActivityBuy = new Date().getTime();
-    }
+    orderJsonActive[x].lastActivitySell = new Date().getTime();
+    orderJsonActive[x].lastActivityBuy = new Date().getTime();
 
     orderJsonActive[x].stateSell = 0;
     orderJsonActive[x].stateBuy = 0;
@@ -271,10 +276,6 @@ async function prepareOrders(forceKFPFM: boolean) {
   });
 
   myLog(`Active markets: ${orderJsonActive.length} - active orders: ${activeOrders}`);
-
-  if (forceKFPFM) {
-    checkActiveMarkets();
-  }
 }
 
 async function getNfts() {
@@ -302,8 +303,10 @@ async function processOrder(x: number, orderType: string) {
   if ((orderType == "sell" && order.sellOrderQty <= 0) ||
     (orderType == "buy" && order.buyOrderQty <= 0)) {
     if (orderType == "sell") {
+      order.checkSellMarket = new Date().getTime();
       order.stateSell = 0;
     } else {
+      order.checkBuyMarket = new Date().getTime();
       order.stateBuy = 0;
     }
 
@@ -346,7 +349,15 @@ async function processOrder(x: number, orderType: string) {
       myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType}: last error server contact: ${lastErrorServerContact} minutes ago`);
 
       if (lastErrorServerContact < 5) {
-        nextJob(x, orderType);
+        if (orderType == "sell") {
+          order.checkSellMarket = new Date().getTime();
+          order.stateSell = 0;
+        } else {
+          order.checkBuyMarket = new Date().getTime();
+          order.stateBuy = 0;
+        }
+
+        processOrder(x, orderType);
 
         return;
       } else {
@@ -364,7 +375,15 @@ async function processOrder(x: number, orderType: string) {
 
         await processActionsResult(order, orderType, -1);
 
-        nextJob(x, orderType);
+        if (orderType == "sell") {
+          order.checkSellMarket = new Date().getTime();
+          order.stateSell = 0;
+        } else {
+          order.checkBuyMarket = new Date().getTime();
+          order.stateBuy = 0;
+        }
+
+        processOrder(x, orderType);
 
         return;
       }
@@ -394,7 +413,16 @@ async function processOrder(x: number, orderType: string) {
           myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Service Error: wrong data. checkOrderType: ${checkOrderType} checkItemMint: ${checkItemMint} checkCurrency: ${checkCurrency} checkSellPrice: ${checkSellPrice} checkBuyPrice: ${checkBuyPrice}`);
           myLog(serverOrder.orderType + ";" + ";" + orderType);
           myLog(serverOrder);
-          nextJob(x, orderType);
+
+          if (orderType == "sell") {
+            order.checkSellMarket = new Date().getTime();
+            order.stateSell = 0;
+          } else {
+            order.checkBuyMarket = new Date().getTime();
+            order.stateBuy = 0;
+          }
+
+          processOrder(x, orderType);
           break;
         }
 
@@ -428,14 +456,38 @@ async function processOrder(x: number, orderType: string) {
 
         await processActionsResult(serverOrder, orderType, x);
 
+        if (orderType == "sell") {
+          order.checkSellMarket = new Date().getTime();
+          order.stateSell = 0;
+        } else {
+          order.checkBuyMarket = new Date().getTime();
+          order.stateBuy = 0;
+        }
+
         nextJob(x, orderType);
 
         break;
       default:
+        if (orderType == "sell") {
+          order.checkSellMarket = new Date().getTime();
+          order.stateSell = 0;
+        } else {
+          order.checkBuyMarket = new Date().getTime();
+          order.stateBuy = 0;
+        }
+
         myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Service Error: ${result.code} ${result.data} `);
         break;
     }
   } catch (e) {
+    if (orderType == "sell") {
+      order.checkSellMarket = new Date().getTime();
+      order.stateSell = 0;
+    } else {
+      order.checkBuyMarket = new Date().getTime();
+      order.stateBuy = 0;
+    }
+
     myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} ${e} `);
   }
 }
@@ -444,9 +496,6 @@ async function nextJob(x: number, orderType: string) {
   var order: any = orderJsonActive[x];
 
   if (orderType == "sell") {
-    order.stateSell = 0; //idle
-    order.checkSellMarket = new Date().getTime();
-
     if (order.checkSellMarketCounter > 0) {
       myLog(`Check sell market[${order.index}][${order.counterLocal} - ${order.counter}] - for activities (${order.checkSellMarketCounter})`);
       order.checkSellMarketCounter--;
@@ -456,9 +505,6 @@ async function nextJob(x: number, orderType: string) {
       }, 3000);
     }
   } else {
-    order.stateBuy = 0; //idle
-    order.checkBuyMarket = new Date().getTime();
-
     if (order.checkBuyMarketCounter > 0) {
       myLog(`Check buy market[${order.index}][${order.counterLocal} - ${order.counter}] - for activities (${order.checkBuyMarketCounter})`);
       order.checkBuyMarketCounter--;
@@ -479,22 +525,28 @@ function checkActiveMarkets() {
     let diffLastCheckMarket = 0;
 
     if (order.sellOrderQty > 0) {
-      diffLastCheckMarket = (new Date().getTime() - order.checkSellMarket) / 1000;
+      diffLastCheckMarket = (new Date().getTime() - order.checkSellMarket) / 1000 / 60;
+      var minKFPFM = Math.min(5, order.keepFirstPositionForMinuteSell);
 
-      if (diffLastCheckMarket >= (Math.min(5, order.keepFirstPositionForMinuteSell) - 1) * 60) {
-        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell for KFPFM expired (${diffLastCheckMarket})`);
+      if (diffLastCheckMarket >= minKFPFM - 1) {
+        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell for KFPFM expired (${diffLastCheckMarket.toFixed(2)})`);
 
         processOrder(x, "sell");
+      } else {
+        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell I await KFPFM expiration (${diffLastCheckMarket.toFixed(2)}/${minKFPFM})`);
       }
     }
 
     if (order.buyOrderQty > 0) {
-      diffLastCheckMarket = (new Date().getTime() - order.checkBuyMarket) / 1000;
+      diffLastCheckMarket = (new Date().getTime() - order.checkBuyMarket) / 1000 / 60;
+      var minKFPFM = Math.min(5, order.keepFirstPositionForMinuteBuy);
 
-      if (diffLastCheckMarket >= (Math.min(5, order.keepFirstPositionForMinuteBuy) - 1) * 60) {
-        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - buy for KFPFM expired (${diffLastCheckMarket})`);
+      if (diffLastCheckMarket >= minKFPFM - 1) {
+        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - buy for KFPFM expired (${diffLastCheckMarket.toFixed(2)})`);
 
         processOrder(x, "buy");
+      } else {
+        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - buy I await KFPFM expiration (${diffLastCheckMarket.toFixed(2)}/${minKFPFM})`);
       }
     }
   }
@@ -771,4 +823,5 @@ async function cancelOrder(orderId: PublicKey) {
   return txid;
 }
 
+console.clear();
 initWallet();
