@@ -82,8 +82,6 @@ function startNewProcess() {
     parameters.unshift("start");
     parameters.push(pwdWallet);
 
-    myLog(JSON.stringify(parameters));
-
     require("child_process").spawn(cmd, parameters, {
       cwd: process.cwd(),
       detached: true,
