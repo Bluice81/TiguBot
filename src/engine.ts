@@ -8,7 +8,7 @@ import config from "./config.json";
 import ordersJson from "./orders.json";
 import fs from 'fs';
 
-let version = '2.46 13/02/2023';
+let version = '2.5 13/02/2023';
 
 let wallet: Keypair;
 
@@ -449,10 +449,6 @@ async function processOrder(x: number, orderType: string) {
         order.counter = serverOrder.counter;
 
         if (orderType == "sell") {
-          if (serverOrder.actions.length > 0) {
-            order.checkSellMarketCounter = 8;
-          }
-
           if (!order.openOrdersSyncSell) {
             for (var j = 0; j < serverOrder.openOrdersSell.length; j++) {
               updateOrderTx(x, "sell", "add", "sync", serverOrder.openOrdersSell[j]);
@@ -461,10 +457,6 @@ async function processOrder(x: number, orderType: string) {
 
           order.openOrdersSyncSell = serverOrder.openOrdersSyncSell;
         } else {
-          if (serverOrder.actions.length > 0) {
-            order.checkBuyMarketCounter = 8;
-          }
-
           if (!order.openOrdersSyncBuy) {
             for (var j = 0; j < serverOrder.openOrdersBuy.length; j++) {
               updateOrderTx(x, "buy", "add", "sync", serverOrder.openOrdersBuy[j]);
@@ -484,7 +476,14 @@ async function processOrder(x: number, orderType: string) {
           order.stateBuy = 0;
         }
 
-        nextJob(x, orderType);
+        if (serverOrder.wrongData != undefined && serverOrder.wrongData) {
+          setTimeout(function () {
+            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Out of sync.`);
+            processOrder(x, orderType);
+          }, 1000);
+        }
+
+        //nextJob(x, orderType);
 
         break;
       default:
@@ -512,30 +511,6 @@ async function processOrder(x: number, orderType: string) {
   }
 }
 
-async function nextJob(x: number, orderType: string) {
-  var order: any = orderJsonActive[x];
-
-  if (orderType == "sell") {
-    if (order.checkSellMarketCounter > 0) {
-      myLog(`Check sell market[${order.index}][${order.counterLocal} - ${order.counter}] - for activities (${order.checkSellMarketCounter})`);
-      order.checkSellMarketCounter--;
-
-      setTimeout(function () {
-        processOrder(order.index, orderType);
-      }, 3000);
-    }
-  } else {
-    if (order.checkBuyMarketCounter > 0) {
-      myLog(`Check buy market[${order.index}][${order.counterLocal} - ${order.counter}] - for activities (${order.checkBuyMarketCounter})`);
-      order.checkBuyMarketCounter--;
-
-      setTimeout(function () {
-        processOrder(order.index, orderType);
-      }, 3000);
-    }
-  }
-}
-
 function checkActiveMarkets() {
   myLog("Check active markets");
 
@@ -546,7 +521,7 @@ function checkActiveMarkets() {
 
     if (order.sellOrderQty > 0) {
       diffLastCheckMarket = (new Date().getTime() - order.checkSellMarket) / 1000 / 60;
-      var minKFPFM = Math.min(5, order.keepFirstPositionForMinuteSell);
+      var minKFPFM = Math.min(2, order.keepFirstPositionForMinuteSell);
 
       if (diffLastCheckMarket >= minKFPFM - 1) {
         myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell for KFPFM expired (${diffLastCheckMarket.toFixed(2)})`);
@@ -559,7 +534,7 @@ function checkActiveMarkets() {
 
     if (order.buyOrderQty > 0) {
       diffLastCheckMarket = (new Date().getTime() - order.checkBuyMarket) / 1000 / 60;
-      var minKFPFM = Math.min(5, order.keepFirstPositionForMinuteBuy);
+      var minKFPFM = Math.min(2, order.keepFirstPositionForMinuteBuy);
 
       if (diffLastCheckMarket >= minKFPFM - 1) {
         myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - buy for KFPFM expired (${diffLastCheckMarket.toFixed(2)})`);
