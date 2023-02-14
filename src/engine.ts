@@ -8,7 +8,7 @@ import config from "./config.json";
 import ordersJson from "./orders.json";
 import fs from 'fs';
 
-let version = '2.7 14/02/2023';
+let version = '2.8 14/02/2023';
 
 let wallet: Keypair;
 
@@ -523,11 +523,11 @@ function checkActiveMarkets() {
       diffLastCheckMarket = (new Date().getTime() - order.checkSellMarket) / 1000 / 60;
 
       if (diffLastCheckMarket >= maxTimeout - 1) {
-        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell timeout (${diffLastCheckMarket.toFixed(2)}/${maxTimeout})`);
+        myLog(`Check market[${order.index}] - sell timeout (${diffLastCheckMarket.toFixed(2)}/${maxTimeout})`);
 
         processOrder(x, "sell");
       } else {
-        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - sell I await expiration (${diffLastCheckMarket.toFixed(2)}/${maxTimeout})`);
+        myLog(`Check market[${order.index}] - sell I await expiration (${diffLastCheckMarket.toFixed(2)}/${maxTimeout})`);
       }
     }
 
@@ -535,11 +535,11 @@ function checkActiveMarkets() {
       diffLastCheckMarket = (new Date().getTime() - order.checkBuyMarket) / 1000 / 60;
 
       if (diffLastCheckMarket >= maxTimeout - 1) {
-        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - timeout (${diffLastCheckMarket.toFixed(2)}/${maxTimeout})`);
+        myLog(`Check market[${order.index}] - timeout (${diffLastCheckMarket.toFixed(2)}/${maxTimeout})`);
 
         processOrder(x, "buy");
       } else {
-        myLog(`Check market[${order.index}][${order.counterLocal} - ${order.counter}] - buy I await expiration (${diffLastCheckMarket.toFixed(2)}/${maxTimeout})`);
+        myLog(`Check market[${order.index}] - buy I await expiration (${diffLastCheckMarket.toFixed(2)}/${maxTimeout})`);
       }
     }
   }
@@ -612,12 +612,12 @@ async function processActionsResult(order: any, orderType: string, x: number) {
 
               if (newOrderTx == "") {
                 throw new Error();
-              }
-
-              if (orderType == "sell") {
-                orderLocal.pendingNewOrderCounterSell.push(new Date());
               } else {
-                orderLocal.pendingNewOrderCounterBuy.push(new Date());
+                if (orderType == "sell") {
+                  orderLocal.pendingNewOrderCounterSell.push(new Date());
+                } else {
+                  orderLocal.pendingNewOrderCounterBuy.push(new Date());
+                }
               }
             }
             catch (e) {
