@@ -4,15 +4,16 @@ import { encrypt, decrypt } from './crypto';
 import readline from 'readline';
 import fetch from "isomorphic-fetch";
 import base58 = require('bs58');
-import config from "./config.json";
-import ordersJson from "./orders.json";
+
 import fs from 'fs';
 
-let version = '2.82 15/02/2023';
+let version = '2.83 15/02/2023';
 
 let wallet: Keypair;
+let config:any;
+let ordersJson: any;
 
-let connection = new Connection(config.rpc, "confirmed");
+let connection:Connection;
 let programId = new PublicKey("traderDnaR5w6Tcoi3NFm53i48FTDNbGjBSZwWXDRrg");
 
 let gmClientService = new GmClientService();
@@ -36,37 +37,7 @@ let lastOrdersJson = "";
 let suspendLog = false;
 let pwdWallet = "";
 
-fs.watch("./src/orders.json", (eventType, filename) => {
-  if (eventType === 'change') {
-    try {
-      var rawData = fs.readFileSync("./src/orders.json").toString();
 
-      if (rawData !== "" && rawData !== lastOrdersJson) {
-        lastOrdersJson = rawData;
-        suspendLog = true;
-
-        const rl = readline.createInterface({
-          input: process.stdin,
-          output: process.stdout
-        });
-
-        rl.question('File orders has been changed! Do you want to apply the changes (y for confirm)?\n', function (response) {
-          suspendLog = false;
-
-          if (response == "y") {
-            startNewProcess();
-          } else {
-            myLog(`The file has not been updated!`);
-          }
-
-          rl.close();
-        });
-      }
-    } catch (e: any) {
-      myLog(e.toString());
-    }
-  }
-});
 
 function startNewProcess() {
   process.on("exit", function () {
@@ -117,7 +88,68 @@ function myLog(
   }
 }
 
+function initFile() {
+  if (!fs.existsSync("./src/orders.json")) {
+    myLog("Create orders.json file");
+    fs.writeFileSync("./src/orders.json", "[]");
+  }
+
+  if (!fs.existsSync("./src/config.json")) {
+    myLog("Create config.json file");
+    fs.writeFileSync("./src/config.json", 
+    `
+      {
+        "rpc" : "",
+        "apiServerAddress": "",
+        "apiKey": "",
+        "privateKey": {
+            "iv": "",
+            "content": ""
+        }
+      }
+    `);
+  }
+
+  fs.watch("./src/orders.json", (eventType, filename) => {
+    if (eventType === 'change') {
+      try {
+        var rawData = fs.readFileSync("./src/orders.json").toString();
+
+        if (rawData !== "" && rawData !== lastOrdersJson) {
+          lastOrdersJson = rawData;
+          suspendLog = true;
+
+          const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+          });
+
+          rl.question('File orders has been changed! Do you want to apply the changes (y for confirm)?\n', function (response) {
+            suspendLog = false;
+
+            if (response == "y") {
+              startNewProcess();
+            } else {
+              myLog(`The file has not been updated!`);
+            }
+
+            rl.close();
+          });
+        }
+      } catch (e: any) {
+        myLog(e.toString());
+      }
+    }
+  });
+
+  config =  JSON.parse(fs.readFileSync("./src/config.json").toString());
+  connection = new Connection(config.rpc, "confirmed");
+
+  ordersJson = JSON.parse(fs.readFileSync("./src/orders.json").toString());
+}
 const initWallet = async () => {
+  initFile();
+
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
