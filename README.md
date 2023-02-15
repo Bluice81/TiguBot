@@ -50,17 +50,20 @@ Instructions for the first launch of TiguBot:
 
 With step 10 the installation is finished!
 
-Instruction for run TiguBot.
-1. Visit https://www.tigubot.com/ and login using your API key and the pubkey of the wallet you intend to use for the bot.
-2. Navigate to "Bot settings" to create a configuration for the bot. See "CONFIGURATION GRID BELOW" for instructions on specific settings.
-3. Use the "copy" link to paste into the "orders.json" inside the /src folder.
-4. From the command prompt, run the command: npm start 0 (operative mode, see Bot Start Up - Command syntax section)
-5. When prompted, enter your password.
+Instructions for all subsequent launches and edits to the orders.json file:
+
+1. (optional) Create or modify the configuration (see next section)
+2. From the command prompt, run the command: npm start 0 (operative mode, see Bot Start Up - Command syntax section)
+3. When prompted, enter your password.
 
 How to create/edit configuration file: orders.json:
 
-1. Visit https://www.tigubot.com/ and log in with the public address of your wallet and the apiKey that you previously purchased from the site.
-2. Go to the "Bot Settings" menu:
+1. Visit https://www.tigubot.com/ and login using your API key and the pubkey of the wallet you intend to use for the bot.
+2. Navigate to "Bot settings" to create a configuration for the bot. See "CONFIGURATION GRID BELOW" for instructions on specific settings.
+3. Use the "copy" link to paste into the "orders.json" inside the /src folder.
+4. The bot notices when the orders.json file is changed and will ask you if you want to apply the changes. Responding with y will restart the bot in a new terminal
+
+BOT Settings page
 
 Through this page you can create your initial configuration and then copy it to the PC clipboard with the "Copy" link. Once copied you can paste it into the orders.json file (You will have to create this file inside the project folder the first time you use it.)
 
