@@ -8,7 +8,7 @@ import config from "./config.json";
 import ordersJson from "./orders.json";
 import fs from 'fs';
 
-let version = '2.8 14/02/2023';
+let version = '2.81 14/02/2023';
 
 let wallet: Keypair;
 
@@ -366,19 +366,7 @@ async function processOrder(x: number, orderType: string) {
       var lastErrorServerContact = Math.round((new Date().getTime() - order.lastError) / 60000);
       myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType}: last error server contact: ${lastErrorServerContact} minutes ago`);
 
-      if (lastErrorServerContact < 5) {
-        if (orderType == "sell") {
-          order.checkSellMarket = new Date().getTime();
-          order.stateSell = 0;
-        } else {
-          order.checkBuyMarket = new Date().getTime();
-          order.stateBuy = 0;
-        }
-
-        processOrder(x, orderType);
-
-        return;
-      } else {
+      if (lastErrorServerContact >= 5) {
         order.lastError = undefined;
 
         myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType}: contact with server lost, remove all open orders`);
