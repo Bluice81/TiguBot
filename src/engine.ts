@@ -108,6 +108,9 @@ function initFile() {
         }
       }
     `);
+
+    myLog("Please edit the config.json file!");
+    process.exit();
   }
 
   fs.watch("./src/orders.json", (eventType, filename) => {

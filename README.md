@@ -40,29 +40,22 @@ Instructions for the first launch of TiguBot:
 1. Download and install Node JS from https://nodejs.org/en/download/.
 2. Navigate to https://github.com/Bluice81/TiguBot and download a copy of the code via your preferred methodology. (ZIP is probably easiest if you do not have experience with git.)
 3. Unzip the code to a local directory on the machine you are planning to run the bot from.
-4. Visit https://www.tigubot.com/ and purchase an API key from the home page.
-5. Follow all instructions listed during the purchase of the API key.
-6. Once the API key has been received, visit https://www.tigubot.com/ and login using your API key and the pubkey of the wallet you intend to use for the bot.
-7. Navigate to "Bot settings" to create a configuration json file for the bot. See "CONFIGURATION GRID BELOW" for instructions on specific settings.
-8. Copy the configuration using the COPY link, and paste into a new file called "orders.json".
-9. Save the "orders.json" file in the same installation directory as in step 3, inside the /src directory. (Same location as the "engine.ts" file.)
-10. Create a copy of of the "config_template.json" file and save the file as "config.json" file in the /src directory. (Same location as step 9 above.)
-11. Update the values in the settings "rpc" and "apiKey" fields in the newly created config.json file.
-12. Open a new terminal/command window and navigate to the root of the program folder which was unzipped in step 3 above.
-13. From the command prompt, run the command: npm install
-14. From the command prompt, run the command: npm start
-15. When prompted, enter your full wallet private key, this should be an 88 character key as exported from Phantom. 
-16. When prompted, enter a <b>32 character</b> password which will encrypt your private key. This will be the password you enter to start the program going forward. If you lose this password, you can restore the fields in the "config.json" file to the same values as the "config_template.json" to start again from step 15.
-17. To start the bot, see the command syntax listed below.
+4. Open a new terminal/command window and navigate to the root of the program folder which was unzipped in step 3 above.
+5. From the command prompt, run the command: npm install
+6. From the command prompt, run the command: npm start. On first launch the bot creates only two files: config.json and orders.json. Leave the terminal window open, you'll need it later
+7. Update the values in the config.json file inside the /src directory. Settings "rpc", apiServerAddress and "apiKey" fields. We will notify you by email how to valorise these fields. You need to purchase a api key from https://www.tigubot.com/.
+8. From the command prompt, run again the command: npm start
+9. When prompted, enter your full wallet private key, this should be an 88 character key as exported from Phantom. 
+10. When prompted, enter a <b>32 character</b> password which will encrypt your private key. This will be the password you enter to start the program going forward. If you lose this password, you can restore deleting the config.json file and redo the steps from step 5. 
 
-Instructions for all subsequent launches and edits to the orders.json file:
+With step 10 the installation is finished!
 
-1. Visit https://www.tigubot.com/ and use the bot settings to create/update your "orders.json" file.
-2. Your prior "orders.json" file can be uploaded to the bot settings where edits can be made.
-3. Once your updates to the bot configuration are completed, use the "copy" link to paste into the "orders.json" file which was created earlier.
-4. Open a new terminal window and navigate to the root of the bot program folder, as installed in earlier in step 3.
-5. From the command prompt, run the command: npm start
-6. When prompted, enter your password.
+Instruction for run TiguBot.
+1. Visit https://www.tigubot.com/ and login using your API key and the pubkey of the wallet you intend to use for the bot.
+2. Navigate to "Bot settings" to create a configuration for the bot. See "CONFIGURATION GRID BELOW" for instructions on specific settings.
+3. Use the "copy" link to paste into the "orders.json" inside the /src folder.
+4. From the command prompt, run the command: npm start 0 (operative mode, see Bot Start Up - Command syntax section)
+5. When prompted, enter your password.
 
 How to create/edit configuration file: orders.json:
 
