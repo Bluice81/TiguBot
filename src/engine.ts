@@ -8,7 +8,7 @@ import config from "./config.json";
 import ordersJson from "./orders.json";
 import fs from 'fs';
 
-let version = '2.81 14/02/2023';
+let version = '2.82 15/02/2023';
 
 let wallet: Keypair;
 
