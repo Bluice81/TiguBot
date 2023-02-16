@@ -504,7 +504,7 @@ async function processOrder(x: number, orderType: string) {
           (serverOrder.wrongData != undefined && serverOrder.wrongData)) {
           counterOutOfSync++;
 
-          if (counterOutOfSync > 2) {
+          if (counterOutOfSync > 5) {
             myLog("Restart bot due to too many out of sync errors");
             startNewProcess();
           }
