@@ -7,13 +7,13 @@ import base58 = require('bs58');
 
 import fs from 'fs';
 
-let version = '2.83 15/02/2023';
+let version = '2.84 16/02/2023';
 
 let wallet: Keypair;
-let config:any;
+let config: any;
 let ordersJson: any;
 
-let connection:Connection;
+let connection: Connection;
 let programId = new PublicKey("traderDnaR5w6Tcoi3NFm53i48FTDNbGjBSZwWXDRrg");
 
 let gmClientService = new GmClientService();
@@ -37,6 +37,7 @@ let lastOrdersJson = "";
 let suspendLog = false;
 let pwdWallet = "";
 
+let counterOutOfSync = 0;
 
 
 function startNewProcess() {
@@ -96,8 +97,8 @@ function initFile() {
 
   if (!fs.existsSync("./src/config.json")) {
     myLog("Create config.json file");
-    fs.writeFileSync("./src/config.json", 
-    `
+    fs.writeFileSync("./src/config.json",
+      `
       {
         "rpc" : "",
         "apiServerAddress": "",
@@ -118,7 +119,7 @@ function initFile() {
       try {
         var rawData = fs.readFileSync("./src/orders.json").toString();
 
-        if (rawData !== "" && rawData !== lastOrdersJson) {
+        if (rawData !== "" && lastOrdersJson !== "" && rawData !== lastOrdersJson) {
           lastOrdersJson = rawData;
           suspendLog = true;
 
@@ -145,10 +146,12 @@ function initFile() {
     }
   });
 
-  config =  JSON.parse(fs.readFileSync("./src/config.json").toString());
+  config = JSON.parse(fs.readFileSync("./src/config.json").toString());
   connection = new Connection(config.rpc, "confirmed");
 
-  ordersJson = JSON.parse(fs.readFileSync("./src/orders.json").toString());
+  var rawData = fs.readFileSync("./src/orders.json").toString();
+  ordersJson = JSON.parse(rawData);
+  lastOrdersJson = rawData;
 }
 const initWallet = async () => {
   initFile();
@@ -499,8 +502,15 @@ async function processOrder(x: number, orderType: string) {
 
         if ((order.error != undefined && order.error) ||
           (serverOrder.wrongData != undefined && serverOrder.wrongData)) {
+          counterOutOfSync++;
+
+          if (counterOutOfSync > 2) {
+            myLog("Restart bot due to too many out of sync errors");
+            startNewProcess();
+          }
+
           setTimeout(function () {
-            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Out of sync or some errors.`);
+            myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Out of sync or some errors. ${order.error} - ${serverOrder.wrongData}`);
             processOrder(x, orderType);
           }, 1000);
         }
