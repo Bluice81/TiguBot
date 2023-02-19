@@ -1,4 +1,4 @@
-# TiguBot - Star Atlas Bot (v. 3.0 19/02/2023)
+# TiguBot - Star Atlas Bot (v. 3.1 19/02/2023)
 
 Automated trading software for the Galactic Marketplace of Star Atlas (https://play.staratlas.com/market).
 
@@ -103,10 +103,22 @@ The orders can be filtered through the combobox: 1) Active orders: those active 
 
 <b>Bot Start Up - Command syntax</b><br />
 At the command prompt, enter the following commands:
-./start_windows or ./start_macLinux (according to your operating system) {your_password} {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
+
+FOR WINDOWS:
+.\start_windows {your_password} {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
+
 Example:<br />
-npm start ---> only for initial setup to store private key and password, without executing them.<br />
-./start_windows or ./start_macLinux your_password 1 ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them <br />
-./start_windows or ./start_macLinux your_password 1 1 ---> for test mode and saving a log file.<br />
-./start_windows or ./start_macLinux your_password 0 ---> operating mode (orders will be placed).<br />
-./start_windows or ./start_macLinux your_password 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />
+.\start_windows your_password 1 ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them <br />
+.\start_windows your_password 1 1 ---> for test mode and saving a log file.<br />
+.\start_windows your_password 0 ---> operating mode (orders will be placed).<br />
+.\start_windows your_password 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />
+
+
+FOR MAC/LINUX:
+before running the commands run: fc -p (The fc -p will switch zsh to a in-memory history that will be discarded when you exit.)
+./start_macLinux.sh {your_password} {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
+Example:<br />
+./start_macLinux.sh your_password 1 ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them <br />
+./start_macLinux.sh your_password 1 1 ---> for test mode and saving a log file.<br />
+./start_macLinux.sh your_password 0 ---> operating mode (orders will be placed).<br />
+./start_macLinux.sh your_password 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />
