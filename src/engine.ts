@@ -7,7 +7,7 @@ import base58 = require('bs58');
 
 import fs from 'fs';
 
-let version = '2.84 16/02/2023';
+let version = '3.0 19/02/2023';
 
 let wallet: Keypair;
 let config: any;
@@ -35,33 +35,8 @@ let orderJsonActive: any[];
 let counter = 0;
 let lastOrdersJson = "";
 let suspendLog = false;
-let pwdWallet = "";
 
 let counterOutOfSync = 0;
-
-
-function startNewProcess() {
-  process.on("exit", function () {
-    var cmd = "";
-
-    if (process.platform == "win32") {
-      cmd = "npm.cmd";
-    } else {
-      cmd = "npm";
-    }
-
-    var parameters = process.argv.slice(2);
-    parameters.unshift("start");
-    parameters.push(pwdWallet);
-
-    require("child_process").spawn(cmd, parameters, {
-      cwd: process.cwd(),
-      detached: true,
-      stdio: "inherit"
-    });
-  });
-  process.exit();
-}
 
 function myLog(
   data: String,
@@ -132,7 +107,7 @@ function initFile() {
             suspendLog = false;
 
             if (response == "y") {
-              startNewProcess();
+              process.exit();
             } else {
               myLog(`The file has not been updated!`);
             }
@@ -154,6 +129,8 @@ function initFile() {
   lastOrdersJson = rawData;
 }
 const initWallet = async () => {
+  var param = process.argv.slice(2);
+
   initFile();
 
   const rl = readline.createInterface({
@@ -161,7 +138,8 @@ const initWallet = async () => {
     output: process.stdout
   });
 
-  if (config.privateKey.iv == "" || config.privateKey.content == "") {
+  if (param.length == 0) {
+    myLog("---INITIAL CONFIGURATION---");
     rl.question('What is your private key?\n', function (privateKey) {
       rl.question('Enter a password (32 characters long) to encrypt your private key (If you lose this password, you can always repeat the initial procedure and choose a new one.):\n ', function (secretKey) {
         var hash = encrypt(privateKey, secretKey);
@@ -181,42 +159,23 @@ const initWallet = async () => {
     });
 
   } else {
-    var param = process.argv.slice(2);
-    if (param.length > 2) {
-      pwdWallet = process.argv.slice(4)[0];
+    isTest = param.length < 2 || param[1] == "1";
+    writeLogFile = param.length > 2 && param[2] == "1";
 
-      wallet = Keypair.fromSecretKey(base58.decode(decrypt(config.privateKey, pwdWallet)));
-      init();
-    } else {
-      rl.question('What is your password (32 characters)?\n ', function (response) {
-        pwdWallet = response;
-        wallet = Keypair.fromSecretKey(base58.decode(decrypt(config.privateKey, pwdWallet)));
+    wallet = Keypair.fromSecretKey(base58.decode(decrypt(config.privateKey, param[0])));
 
-        rl.close();
+    console.clear();
 
-        init();
-      });
-    }
+    nfts = await getNfts();
+
+    await prepareOrders();
+
+    myLog(`System start ${version} - ${process.platform} testMode: ${isTest} writeLogFile: ${writeLogFile}`);
+
+    botEvent();
+
+    start();
   }
-}
-
-async function init() {
-  console.clear();
-
-  var param = process.argv.slice(2);
-
-  isTest = param.length < 1 || process.argv.slice(2)[0] == "1";
-  writeLogFile = param.length > 1 && process.argv.slice(3)[0] == "1";
-
-  nfts = await getNfts();
-
-  await prepareOrders();
-
-  myLog(`System start ${version} - ${process.platform} testMode: ${isTest} writeLogFile: ${writeLogFile}`);
-
-  botEvent();
-
-  start();
 }
 
 async function prepareOrders() {
@@ -506,7 +465,7 @@ async function processOrder(x: number, orderType: string) {
 
           if (counterOutOfSync > 5) {
             myLog("Restart bot due to too many out of sync errors");
-            startNewProcess();
+            process.exit();
           }
 
           setTimeout(function () {

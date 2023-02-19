@@ -1,4 +1,4 @@
-# TiguBot - Star Atlas Bot (v. 2.84 16/02/2023)
+# TiguBot - Star Atlas Bot (v. 3.0 19/02/2023)
 
 Automated trading software for the Galactic Marketplace of Star Atlas (https://play.staratlas.com/market).
 
@@ -46,15 +46,14 @@ Instructions for the first launch of TiguBot:
 7. Update the values in the config.json file inside the /src directory. Settings "rpc", apiServerAddress and "apiKey" fields. We will notify you by email how to valorise these fields. You need to purchase a api key from https://www.tigubot.com/.
 8. From the command prompt, run again the command: npm start
 9. When prompted, enter your full wallet private key, this should be an 88 character key as exported from Phantom. 
-10. When prompted, enter a <b>32 character</b> password which will encrypt your private key. This will be the password you enter to start the program going forward. If you lose this password, you can restore deleting the config.json file and redo the steps from step 5. 
+10. When prompted, enter a <b>32 character</b> password which will encrypt your private key. This will be the password you enter to start the program going forward. If you lose this password, you can restore running npm start again.
 
 With step 10 the installation is finished!
 
 Instructions for all subsequent launches and edits to the orders.json file:
 
 1. (optional) Create or modify the configuration (see next section)
-2. From the command prompt, run the command: npm start 0 (operative mode, see Bot Start Up - Command syntax section)
-3. When prompted, enter your password.
+2. From the command prompt, run the command: ./start_windows or ./start_macLinux (according to your operating system) your_password 0 (operative mode, see Bot Start Up - Command syntax section)
 
 How to create/edit configuration file: orders.json:
 
@@ -104,10 +103,10 @@ The orders can be filtered through the combobox: 1) Active orders: those active 
 
 <b>Bot Start Up - Command syntax</b><br />
 At the command prompt, enter the following commands:
-npm start {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
+./start_windows or ./start_macLinux (according to your operating system) {your_password} {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
 Example:<br />
-npm start ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them.<br />
-npm start 1 ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them.<br />
-npm start 1 1 ---> for test mode and saving a log file.<br />
-npm start 0 ---> operating mode (orders will be placed).<br />
-npm start 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />
+npm start ---> only for initial setup to store private key and password, without executing them.<br />
+./start_windows or ./start_macLinux your_password 1 ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them <br />
+./start_windows or ./start_macLinux your_password 1 1 ---> for test mode and saving a log file.<br />
+./start_windows or ./start_macLinux your_password 0 ---> operating mode (orders will be placed).<br />
+./start_windows or ./start_macLinux your_password 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />
