@@ -78,7 +78,7 @@ Example:<br />
 ./start_macLinux.sh your_password 0 ---> operating mode (orders will be placed).<br />
 ./start_macLinux.sh your_password 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />
 
-How to create/edit configuration file: orders.json:
+<b>How to create/edit configuration file: orders.json:</b>
 
 1. Visit https://www.tigubot.com/ and login using your API key and the pubkey of the wallet you intend to use for the bot.
 2. Navigate to "Bot settings" to create a configuration for the bot. See "CONFIGURATION GRID BELOW" for instructions on specific settings.
