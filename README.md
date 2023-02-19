@@ -59,7 +59,7 @@ Instructions for all subsequent launches and edits to the orders.json file:
 <b>Bot Start Up - Command syntax</b><br />
 At the command prompt, enter the following commands:
 
-FOR WINDOWS:
+FOR WINDOWS:<br />
 .\start_windows {your_password} {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
 
 Example:<br />
@@ -69,8 +69,8 @@ Example:<br />
 .\start_windows your_password 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />
 
 
-FOR MAC/LINUX:
-before running the commands run: fc -p (The fc -p will switch zsh to a in-memory history that will be discarded when you exit.)<br />
+FOR MAC/LINUX:<br />
+<b>Before running the commands run: fc -p (The fc -p will switch zsh to a in-memory history that will be discarded when you exit.)</b><br />
 ./start_macLinux.sh {your_password} {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
 
 Example:<br />
