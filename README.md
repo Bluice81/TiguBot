@@ -47,13 +47,36 @@ Instructions for the first launch of TiguBot:
 8. From the command prompt, run again the command: npm start
 9. When prompted, enter your full wallet private key, this should be an 88 character key as exported from Phantom. 
 10. When prompted, enter a <b>32 character</b> password which will encrypt your private key. This will be the password you enter to start the program going forward. If you lose this password, you can restore running npm start again.
+11. For mac/linux system run this command: chmod +x start_macLinux.sh
 
-With step 10 the installation is finished!
+With step 11 the installation is finished!
 
 Instructions for all subsequent launches and edits to the orders.json file:
 
 1. (optional) Create or modify the configuration (see next section)
-2. From the command prompt, run the command: ./start_windows or ./start_macLinux (according to your operating system) your_password 0 (operative mode, see Bot Start Up - Command syntax section)
+2. From the command prompt, run the command: .\start_windows or ./start_macLinux.sh (according to your operating system). See Bot Start Up - Command syntax section).
+
+<b>Bot Start Up - Command syntax</b><br />
+At the command prompt, enter the following commands:
+
+FOR WINDOWS:
+.\start_windows {your_password} {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
+
+Example:<br />
+.\start_windows your_password 1 ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them <br />
+.\start_windows your_password 1 1 ---> for test mode and saving a log file.<br />
+.\start_windows your_password 0 ---> operating mode (orders will be placed).<br />
+.\start_windows your_password 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />
+
+
+FOR MAC/LINUX:
+before running the commands run: fc -p (The fc -p will switch zsh to a in-memory history that will be discarded when you exit.)
+./start_macLinux.sh {your_password} {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
+Example:<br />
+./start_macLinux.sh your_password 1 ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them <br />
+./start_macLinux.sh your_password 1 1 ---> for test mode and saving a log file.<br />
+./start_macLinux.sh your_password 0 ---> operating mode (orders will be placed).<br />
+./start_macLinux.sh your_password 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />
 
 How to create/edit configuration file: orders.json:
 
@@ -98,27 +121,3 @@ Minimum price: This is the entry price for the market. If you want to enter the 
 The system will warn you if you enter any parameters incorrectly (zero sales price, or missing parameters), but it cannot and will not determine whether the parameters that have been entered can cause any losses, For example, if you set the sell price of an opod to $1 or if you set to sell price for $600 but your original purchase price was $900. Triple check your parameters every time!
 
 The orders can be filtered through the combobox: 1) Active orders: those active and with valid settings, 2) Valued: those markets with values but with some missing/incorrect fields and 3) Invalid: Markets with incorrect values.
-
-
-
-<b>Bot Start Up - Command syntax</b><br />
-At the command prompt, enter the following commands:
-
-FOR WINDOWS:
-.\start_windows {your_password} {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
-
-Example:<br />
-.\start_windows your_password 1 ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them <br />
-.\start_windows your_password 1 1 ---> for test mode and saving a log file.<br />
-.\start_windows your_password 0 ---> operating mode (orders will be placed).<br />
-.\start_windows your_password 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />
-
-
-FOR MAC/LINUX:
-before running the commands run: fc -p (The fc -p will switch zsh to a in-memory history that will be discarded when you exit.)
-./start_macLinux.sh {your_password} {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
-Example:<br />
-./start_macLinux.sh your_password 1 ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them <br />
-./start_macLinux.sh your_password 1 1 ---> for test mode and saving a log file.<br />
-./start_macLinux.sh your_password 0 ---> operating mode (orders will be placed).<br />
-./start_macLinux.sh your_password 0 1 ---> operating mode (orders will be placed) and logs will be saved to the log file.<br />
