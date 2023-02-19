@@ -1,4 +1,3 @@
-del "C:\Users\marco\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt"
 @echo off
 :startover
 cd .\
