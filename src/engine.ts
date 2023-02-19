@@ -474,8 +474,6 @@ async function processOrder(x: number, orderType: string) {
           }, 1000);
         }
 
-        //nextJob(x, orderType);
-
         break;
       default:
         if (orderType == "sell") {
