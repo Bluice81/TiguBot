@@ -70,7 +70,7 @@ Example:<br />
 
 
 FOR MAC/LINUX:
-before running the commands run: fc -p (The fc -p will switch zsh to a in-memory history that will be discarded when you exit.)
+before running the commands run: fc -p (The fc -p will switch zsh to a in-memory history that will be discarded when you exit.)<br />
 ./start_macLinux.sh {your_password} {testMode = 0 or 1} {writeLogFile = 0 or 1}<br />
 Example:<br />
 ./start_macLinux.sh your_password 1 ---> for test mode, no orders will be placed. This mode is useful to see the actions the bot will take through the logs without executing them <br />
