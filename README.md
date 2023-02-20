@@ -5,6 +5,8 @@ Automated trading software for the Galactic Marketplace of Star Atlas (https://p
 <b>An API key is necessary to use this software.</b> Once an API key has been purchased, please Follow the instructions below to install and setup the bot.
 
 ---DISCLAIMER---<br />
+Tigubot.com is not officially audited or endorsed by the Star Atlas team.
+
 Tigubot.com and its affilliates, creators, sponsors, or anyone associated with this program are not responsible for any losses and/or missed gains that may incur from any use of this program, whether directly or indirectly.  
 
 A misconfigured bot can cause losses, missed gains, incorrect purchases, etc. It is highly recommended that you carefully check, and recheck, that all settings have been entered correctly, before loading the configuration settings to your local sytstem.
