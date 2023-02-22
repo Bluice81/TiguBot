@@ -7,7 +7,7 @@ import base58 = require('bs58');
 
 import fs from 'fs';
 
-let version = '3.1 19/02/2023';
+let version = '3.2 20/02/2023';
 
 let wallet: Keypair;
 let config: any;
@@ -596,9 +596,7 @@ async function processActionsResult(order: any, orderType: string, x: number) {
                 orderLocal.tmpNewPriceBuy = 0;
               }
 
-              var qty = orderType == "sell" ? order.sellOrderQty : order.buyOrderQty;
-
-              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(orderType == "sell" ? order.currencySell : order.currencyBuy), qty, order.actions[z].newPrice, orderType);
+              newOrderTx = await placeOrder(new PublicKey(order.itemMint), new PublicKey(orderType == "sell" ? order.currencySell : order.currencyBuy), order.newQty, order.actions[z].newPrice, orderType);
 
               if (newOrderTx == "") {
                 throw new Error();
@@ -624,7 +622,7 @@ async function processActionsResult(order: any, orderType: string, x: number) {
 
           var containerPending = orderType == "sell" ? orderLocal.pendingNewOrderCounterSell : orderLocal.pendingNewOrderCounterBuy;
 
-          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Place ${order.actions[z].newPrice} for ${order.actions[z].reason} txID: ${newOrderTx} - pendingNewOrders: ${containerPending.length} `);
+          myLog(`[${order.index}][${order.counterLocal} - ${order.counter}] - ${orderType} Place x${order.newQty} ${order.actions[z].newPrice} for ${order.actions[z].reason} txID: ${newOrderTx} - pendingNewOrders: ${containerPending.length} `);
 
           break;
         default:
