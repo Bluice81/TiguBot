@@ -7,7 +7,7 @@ import base58 = require('bs58');
 
 import fs from 'fs';
 
-let version = '3.2 22/02/2023';
+let version = '3.3 22/02/2023';
 
 let wallet: Keypair;
 let config: any;
@@ -168,9 +168,9 @@ const initWallet = async () => {
 
     nfts = await getNfts();
 
-    await prepareOrders();
-
     myLog(`System start ${version} - ${process.platform} testMode: ${isTest} writeLogFile: ${writeLogFile}`);
+
+    await prepareOrders();
 
     botEvent();
 
@@ -655,7 +655,6 @@ async function botEvent() {
     programId,
   );
 
-  // As events are emitted from the program eventHandler will be called
   gmEventService.setEventHandler(eventHandler);
 
   gmEventService.initialize();

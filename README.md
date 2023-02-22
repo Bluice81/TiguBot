@@ -1,4 +1,4 @@
-# TiguBot - Star Atlas Bot (v. 3.2 22/02/2023)
+# TiguBot - Star Atlas Bot (v. 3.3 22/02/2023)
 
 Automated trading software for the Galactic Marketplace of Star Atlas (https://play.staratlas.com/market).
 
