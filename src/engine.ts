@@ -7,7 +7,7 @@ import base58 = require('bs58');
 
 import fs from 'fs';
 
-let version = '3.2 20/02/2023';
+let version = '3.2 22/02/2023';
 
 let wallet: Keypair;
 let config: any;
